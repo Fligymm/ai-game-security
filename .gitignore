@@ -1,0 +1,90 @@
+# ==========================================
+# 1. 编译垃圾与 Python 运行缓存 (必须忽略)
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ==========================================
+# 2. 编辑器与 IDE 配置 (忽略本地个性化配置)
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+.cursor/
+
+# ==========================================
+# 3. 虚拟环境 (忽略巨大的 Python 环境依赖)
+# ==========================================
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# ==========================================
+# 4. 项目特有：游戏 Demo、视频与原始数据 (极重要！)
+# ==========================================
+# 忽略 CS2 Demo 文件
+*.dem
+*.replay
+
+# 忽略游戏录像与媒体文件
+*.mp4
+*.avi
+*.mkv
+*.mov
+
+# 忽略数据集中的原始大文件（仅在本地保留，不上传 GitHub）
+datasets/human/raw/*
+datasets/bot/raw/*
+datasets/cv_agent/raw/*
+datasets/adversarial/raw/*
+
+# ==========================================
+# 5. 项目特有：AI 模型权重与神经网络输出 (极重要！)
+# ==========================================
+*.pt
+*.pth
+*.onnx
+*.engine
+*.safetensors
+*.bin
+
+# 忽略训练日志与模型输出目录
+experiments/logs/*
+experiments/results/*
+models/saved/*
+
+# 允许保留目录中的 .gitkeep 文件以维持文件夹树结构
+!datasets/**/.gitkeep
+!experiments/**/.gitkeep
+!models/**/.gitkeep
+
+# ==========================================
+# 6. 敏感信息与环境变量
+# ==========================================
+.env
+.env.local
+*.pem
+*.key
