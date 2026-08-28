@@ -14,6 +14,8 @@ except ImportError as exc:  # pragma: no cover
         "ultralytics is required. Install with: pip install ultralytics"
     ) from exc
 
+from vision.detection.detection import Detection
+
 CoordSpace = Literal["pixel", "normalized"]
 
 
@@ -71,12 +73,12 @@ class YOLODetector:
             int(k): str(v) for k, v in self.model.names.items()
         }
 
-    def detect_frame(self, frame: np.ndarray) -> list[list[float | int]]:
+    def detect_frame(self, frame: np.ndarray) -> list[Detection]:
         """Run detection on one BGR OpenCV frame.
 
         Returns
         -------
-        list of ``[x1, y1, x2, y2, conf, cls]``
+        list of :class:`vision.detection.detection.Detection`
             Boxes are clipped to the frame (or to ``[0, 1]`` when
             ``coord_space='normalized'``). Empty list if nothing is kept.
         """
@@ -107,7 +109,7 @@ class YOLODetector:
         confs = boxes.conf.cpu().numpy()
         clss = boxes.cls.cpu().numpy()
 
-        detections: list[list[float | int]] = []
+        detections: list[Detection] = []
         for i in range(xyxy.shape[0]):
             x1, y1, x2, y2 = (float(v) for v in xyxy[i][:4])
             if self.coord_space == "normalized":
@@ -124,9 +126,7 @@ class YOLODetector:
             if x2 <= x1 or y2 <= y1:
                 continue
 
-            detections.append(
-                [x1, y1, x2, y2, float(confs[i]), int(clss[i])]
-            )
+            detections.append(Detection(x1, y1, x2, y2, float(confs[i]), int(clss[i])))
         return detections
 
     @staticmethod
@@ -194,7 +194,7 @@ if __name__ == "__main__":
     print(f"num dets    : {len(detections)}")
     print("format      : [x1, y1, x2, y2, conf, cls]")
     for det in detections:
-        x1, y1, x2, y2, conf, cls_id = det
+        x1, y1, x2, y2, conf, cls_id = det.row
         name = detector.class_names.get(int(cls_id), str(cls_id))
         print(
             f"  [{x1:.4f}, {y1:.4f}, {x2:.4f}, {y2:.4f}, "
@@ -203,8 +203,7 @@ if __name__ == "__main__":
 
     assert isinstance(detections, list)
     for det in detections:
-        assert len(det) == 6
-        x1, y1, x2, y2, conf, cls_id = det
+        x1, y1, x2, y2, conf, cls_id = det.row
         assert x2 > x1 and y2 > y1
         assert 0.0 <= float(conf) <= 1.0
         if detector.coord_space == "normalized":

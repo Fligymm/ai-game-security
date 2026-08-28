@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from vision.detection.detection import Detection
+
 HEAD_CLS = 0  # data.yaml: enemy_head
 BODY_CLS = 1  # data.yaml: enemy_body
 
@@ -56,12 +58,15 @@ def relative_offset(
 
 
 def detection_to_state(
-    det: list[float | int],
+    det: Detection | list[float | int] | tuple[float | int, ...],
     frame_shape: tuple[int, ...],
     class_names: dict[int, str] | None = None,
 ) -> TargetState:
-    """Convert one YOLODetector row ``[x1,y1,x2,y2,conf,cls]`` to TargetState."""
-    x1, y1, x2, y2, conf, cls_id = det
+    """Convert one detector output into TargetState."""
+    if isinstance(det, Detection):
+        x1, y1, x2, y2, conf, cls_id = det.row
+    else:
+        x1, y1, x2, y2, conf, cls_id = det
     x1, y1, x2, y2 = float(x1), float(y1), float(x2), float(y2)
     height, width = int(frame_shape[0]), int(frame_shape[1])
     tx, ty, cx, cy, dx, dy = relative_offset(x1, y1, x2, y2, width, height)
@@ -87,7 +92,7 @@ def detection_to_state(
 
 
 def detections_to_states(
-    detections: list[list[float | int]],
+    detections: list[Detection | list[float | int] | tuple[float | int, ...]],
     frame_shape: tuple[int, ...],
     class_names: dict[int, str] | None = None,
 ) -> list[TargetState]:

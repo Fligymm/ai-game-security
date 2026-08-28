@@ -22,6 +22,7 @@ from cv_agent.prediction.kalman import Kalman2D
 from cv_agent.selection.priority import select_target
 from cv_agent.trajectory.catalog import get_trajectory_profile
 from cv_agent.trajectory.paths import GENERATORS, generate, smoothness_features
+from vision.detection.detection import Detection
 from vision.detection.yolo_detector import YOLODetector
 from visualization.offset_overlay import draw_offset_overlay
 

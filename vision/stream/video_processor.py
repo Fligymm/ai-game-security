@@ -15,6 +15,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
+from vision.detection.detection import Detection
 from vision.detection.yolo_detector import YOLODetector
 
 SourceKind = str  # "file" | "camera" | "screen"
@@ -180,7 +181,7 @@ class VideoProcessor:
     def annotate_frame(
         self,
         frame: np.ndarray,
-        detections: list[list[float | int]],
+        detections: list[Detection],
     ) -> np.ndarray:
         """Draw boxes, labels, confidences, centers, and the primary polyline."""
         canvas = frame.copy()
@@ -291,11 +292,11 @@ def _parse_source(source: str | int | Path) -> tuple[SourceKind, str | int]:
 
 
 def _to_pixel_box(
-    det: list[float | int],
+    det: Detection,
     width: int,
     height: int,
 ) -> tuple[float, float, float, float, float, int]:
-    x1, y1, x2, y2, conf, cls_id = det
+    x1, y1, x2, y2, conf, cls_id = det.row
     x1, y1, x2, y2 = float(x1), float(y1), float(x2), float(y2)
     if 0.0 <= x1 <= 1.0 and 0.0 <= y1 <= 1.0 and 0.0 <= x2 <= 1.0 and 0.0 <= y2 <= 1.0:
         if width > 1 and height > 1 and x2 <= 1.0:
@@ -305,7 +306,7 @@ def _to_pixel_box(
 
 
 def _detection_centers(
-    detections: list[list[float | int]],
+    detections: list[Detection],
     shape: tuple[int, ...],
 ) -> list[tuple[float, float, float, int]]:
     height, width = shape[:2]
