@@ -1,0 +1,10 @@
+# Auto-resolved by train.py — do not set path to '.'
+# Classes frozen: 0 enemy_head, 1 enemy_body
+path: D:/AI_Security/ai-game-security/datasets/cs2_custom
+train: train/images
+val: val/images
+
+nc: 2
+names:
+  0: enemy_head
+  1: enemy_body
