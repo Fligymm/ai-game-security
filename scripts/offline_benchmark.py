@@ -35,7 +35,7 @@ from vision.stream.video_processor import write_synthetic_video
 from visualization.aim_debug_overlay import draw_aim_debug_overlay
 
 
-DEFAULT_IMAGE_PATH = r"D:\AI_Security\ai-game-security\TODO\replace_with_real_test_image.png"
+DEFAULT_IMAGE_PATH = r"D:\AI_Security\ai-game-security\datasets\cs2_custom\test_images"
 DEFAULT_VIDEO_PATH = r"D:\AI_Security\ai-game-security\TODO\replace_with_real_test_video.mp4"
 DEFAULT_WEIGHTS_PATH = str(_REPO_ROOT / "yolov8n.pt")
 
@@ -85,7 +85,7 @@ def main() -> None:
     subparsers = parser.add_subparsers(dest="mode", required=True)
 
     image_parser = subparsers.add_parser("image", help="Test a static image")
-    image_parser.add_argument("--image-path", default=DEFAULT_IMAGE_PATH, help="Absolute image path to add later")
+    image_parser.add_argument("--image-path", default=DEFAULT_IMAGE_PATH, help="Absolute image path or image directory")
     image_parser.add_argument("--weights", default=DEFAULT_WEIGHTS_PATH, help="Model weights path")
     image_parser.add_argument("--conf", type=float, default=0.5, help="Confidence threshold")
     image_parser.add_argument("--save-overlay", default=None, help="Optional output image path")
@@ -282,9 +282,15 @@ def _build_detector(weights_path: Path, conf: float) -> YOLODetector:
 
 def _load_or_create_static_image(image_path: Path) -> np.ndarray:
     if image_path.exists():
-        frame = cv2.imread(str(image_path))
-        if frame is not None:
-            return frame
+        if image_path.is_dir():
+            for candidate in sorted(image_path.glob("*.png")) + sorted(image_path.glob("*.jpg")) + sorted(image_path.glob("*.jpeg")):
+                frame = cv2.imread(str(candidate))
+                if frame is not None:
+                    return frame
+        else:
+            frame = cv2.imread(str(image_path))
+            if frame is not None:
+                return frame
     return _create_synthetic_static_image()
 
 
