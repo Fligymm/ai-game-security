@@ -20,6 +20,7 @@ from cv_agent.control.mouse import AimController
 from cv_agent.detection.target_state import detections_to_states
 from cv_agent.prediction.kalman import Kalman2D
 from cv_agent.selection.priority import select_target
+from cv_agent.trajectory.catalog import get_trajectory_profile
 from cv_agent.trajectory.paths import GENERATORS, generate, smoothness_features
 from vision.detection.yolo_detector import YOLODetector
 from visualization.offset_overlay import draw_offset_overlay
@@ -71,11 +72,16 @@ def main() -> None:
         chosen = None
         for name in names:
             traj = generate(name, selected.delta_x, selected.delta_y, seed=42)
+            profile = get_trajectory_profile(name)
             feat = smoothness_features(traj)
             print(
-                f"  traj={traj.name:12s}  steps={int(feat['n_steps']):3d}  "
-                f"path={feat['path_len']:.1f}  straight={feat['straightness']:.3f}  "
-                f"jerk={feat['jerk_mean']:.3f}"
+                f"  traj={traj.name:12s}  family={profile.family:15s}  "
+                f"steps={int(feat['n_steps']):3d}  path={feat['path_len']:.1f}  "
+                f"straight={feat['straightness']:.3f}  jerk={feat['jerk_mean']:.3f}"
+            )
+            print(
+                f"    tags={','.join(profile.tags) or '-'}  "
+                f"signals={','.join(profile.anticheat_signal)}"
             )
             if name == args.algorithm:
                 chosen = traj

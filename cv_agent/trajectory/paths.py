@@ -21,9 +21,9 @@ class Trajectory:
     @property
     def deltas(self) -> list[tuple[float, float]]:
         pts = self.points
-        if not pts:
+        if len(pts) < 2:
             return []
-        out = [(pts[0][0], pts[0][1])]
+        out = []
         for i in range(1, len(pts)):
             out.append((pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]))
         return out
@@ -187,19 +187,21 @@ def generate(name: str, dx: float, dy: float, **kwargs) -> Trajectory:
 def smoothness_features(traj: Trajectory) -> dict[str, float]:
     """Cheap time-series stats for later anticheat models."""
     dxy = traj.deltas
-    if len(dxy) < 2:
-        return {"n_steps": float(len(dxy)), "path_len": 0.0, "jerk_mean": 0.0}
     speeds = np.array(traj.speeds, dtype=np.float64)
-    acc = np.diff(speeds)
-    jerk = np.diff(acc) if len(acc) > 1 else np.array([0.0])
     pts = np.array(traj.points, dtype=np.float64)
+    if len(pts) < 2:
+        return {"n_steps": float(len(dxy)), "path_len": 0.0, "jerk_mean": 0.0}
     segs = np.diff(pts, axis=0)
     path_len = float(np.sum(np.linalg.norm(segs, axis=1)))
     chord = float(np.hypot(pts[-1, 0] - pts[0, 0], pts[-1, 1] - pts[0, 1]))
+    acc = np.diff(speeds)
+    jerk = np.diff(acc) if len(acc) > 1 else np.array([0.0])
+    speed_std = float(np.std(speeds)) if len(speeds) > 0 else 0.0
+    jerk_mean = float(np.mean(np.abs(jerk))) if len(jerk) > 0 else 0.0
     return {
         "n_steps": float(len(dxy)),
         "path_len": path_len,
         "straightness": chord / max(path_len, 1e-6),
-        "speed_std": float(np.std(speeds)),
-        "jerk_mean": float(np.mean(np.abs(jerk))),
+        "speed_std": speed_std,
+        "jerk_mean": jerk_mean,
     }

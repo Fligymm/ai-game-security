@@ -12,12 +12,13 @@ from cv_agent.trajectory.paths import Trajectory, generate, smoothness_features
 
 
 MOUSEEVENTF_MOVE = 0x0001
+ULONG_PTR = getattr(wintypes, "ULONG_PTR", ctypes.c_size_t)
 
 
 def _send_relative(dx: int, dy: int) -> None:
     if sys.platform != "win32" or (dx == 0 and dy == 0):
         return
-    extra = wintypes.ULONG_PTR(0)
+    extra = ULONG_PTR(0)
 
     class MOUSEINPUT(ctypes.Structure):
         _fields_ = (
@@ -26,7 +27,7 @@ def _send_relative(dx: int, dy: int) -> None:
             ("mouseData", wintypes.DWORD),
             ("dwFlags", wintypes.DWORD),
             ("time", wintypes.DWORD),
-            ("dwExtraInfo", wintypes.ULONG_PTR),
+            ("dwExtraInfo", ULONG_PTR),
         )
 
     class INPUT(ctypes.Structure):
