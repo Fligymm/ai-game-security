@@ -38,6 +38,11 @@ def _rewrite_data_yaml() -> Path:
             "Re-run python behavior/collection/split_dataset.py"
         )
 
+    for cache_path in (train_images.parent / "labels.cache", val_images.parent / "labels.cache"):
+        if cache_path.exists():
+            cache_path.unlink()
+            print(f"removed stale label cache: {cache_path}")
+
     _DATA_YAML.write_text(
         (
             "# Auto-resolved by train.py — do not set path to '.'\n"
@@ -70,7 +75,7 @@ def main() -> None:
         batch=16,
         device=0,
         project=str(_REPO_ROOT / "runs" / "detect"),
-        name="cs2_detection_v1",
+        name="cs2_detection_v2",
         exist_ok=True,
         workers=2,
     )

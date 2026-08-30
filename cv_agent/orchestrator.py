@@ -58,6 +58,7 @@ class AimPipeline:
         default_algorithm: str = "linear",
         prediction_enabled: bool = True,
         prediction_gain: float = 1.0,
+        allow_body_fallback: bool = True,
     ) -> None:
         self.detector = detector if detector is not None else YOLODetector()
         self.controller = controller if controller is not None else AimController()
@@ -66,6 +67,8 @@ class AimPipeline:
         self.default_algorithm = default_algorithm
         self.prediction_enabled = bool(prediction_enabled)
         self.prediction_gain = float(prediction_gain)
+        self.allow_body_fallback = bool(allow_body_fallback)
+        self._last_selected_cls_id: int | None = None
         if not 0.0 <= self.prediction_gain <= 1.0:
             raise ValueError("prediction_gain must be in [0, 1]")
 
@@ -73,6 +76,7 @@ class AimPipeline:
         """Reset the Kalman state for a new target or a new capture session."""
 
         self.predictor = Kalman2D()
+        self._last_selected_cls_id = None
 
     def __call__(
         self,
@@ -111,7 +115,20 @@ class AimPipeline:
 
         detections = self.detector.detect_frame(frame)
         states = detections_to_states(detections, frame.shape, self.detector.class_names)
-        selected = select_target(states, prefer_head=selected_preference)
+        selected = select_target(
+            states,
+            prefer_head=selected_preference,
+            allow_body_fallback=self.allow_body_fallback,
+        )
+
+        # Never blend measurements from different semantic targets. A body
+        # measurement followed by a head measurement would otherwise leave
+        # the Kalman state near the torso and pull the trajectory off target.
+        if selected is None:
+            self.reset_prediction()
+        elif self._last_selected_cls_id != selected.cls_id:
+            self.reset_prediction()
+            self._last_selected_cls_id = selected.cls_id
 
         measurement_offset: tuple[float, float] | None = None
         filtered_offset: tuple[float, float] | None = None
@@ -124,6 +141,7 @@ class AimPipeline:
             measurement_offset = selected.offset
             if self.prediction_enabled:
                 filtered_offset = self.predictor.predict_then_update(*measurement_offset)
+                # Advance once more to obtain the next-frame lead estimate.
                 predicted_offset = self.predictor.predict()
                 compensated_offset = _blend_offsets(
                     filtered_offset,

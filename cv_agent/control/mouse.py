@@ -42,6 +42,30 @@ def _send_relative(dx: int, dy: int) -> None:
 class AimController:
     """Plan (ΔX, ΔY) → trajectory; optionally play as relative mouse moves."""
 
+    def __init__(self) -> None:
+        self._fractional_x = 0.0
+        self._fractional_y = 0.0
+
+    def reset(self) -> None:
+        self._fractional_x = 0.0
+        self._fractional_y = 0.0
+
+    def apply_correction(self, dx: float, dy: float, *, max_step: float = 24.0, deadzone: float = 0.5) -> dict[str, float]:
+        """Send one bounded relative correction for a realtime frame."""
+        import math
+        distance = math.hypot(float(dx), float(dy))
+        if distance <= float(deadzone):
+            self.reset()
+            return {"sent_dx": 0.0, "sent_dy": 0.0, "remaining_error": distance}
+        scale = min(1.0, float(max_step) / max(distance, 1e-9))
+        self._fractional_x += float(dx) * scale
+        self._fractional_y += float(dy) * scale
+        sx, sy = int(round(self._fractional_x)), int(round(self._fractional_y))
+        self._fractional_x -= sx
+        self._fractional_y -= sy
+        _send_relative(sx, sy)
+        return {"sent_dx": float(sx), "sent_dy": float(sy), "remaining_error": distance}
+
     def plan(self, dx: float, dy: float, algorithm: str = "linear", **kwargs) -> Trajectory:
         return generate(algorithm, dx, dy, **kwargs)
 

@@ -47,8 +47,10 @@ def _draw_status(
 ) -> None:
     lines = [
         f"pred={result.prediction_enabled} applied_mouse={result.applied_mouse}",
+        f"selected={_selected_label(result.selected)} target={_fmt_point(result.selected)}",
         f"mouse_delta={_fmt_pair(result.mouse_delta)}",
         f"meas={_fmt_pair(result.measurement_offset)} filt={_fmt_pair(result.filtered_offset)} pred={_fmt_pair(result.predicted_offset)}",
+        f"traj_end={_fmt_traj_end(result)}",
     ]
     if paused:
         lines.append("PAUSED: mouse output disabled")
@@ -164,3 +166,22 @@ def _fmt_pair(value: tuple[float, float] | None) -> str:
     if value is None:
         return "None"
     return f"({value[0]:.1f}, {value[1]:.1f})"
+
+
+def _selected_label(selected: TargetState | None) -> str:
+    if selected is None:
+        return "None"
+    return f"{selected.cls_name}[{selected.cls_id}] conf={selected.conf:.2f}"
+
+
+def _fmt_point(selected: TargetState | None) -> str:
+    if selected is None:
+        return "None"
+    return f"({selected.target_x:.1f},{selected.target_y:.1f})"
+
+
+def _fmt_traj_end(result: AimPipelineResult) -> str:
+    if result.trajectory is None or not result.trajectory.points:
+        return "None"
+    x, y = result.trajectory.points[-1]
+    return f"({x:.1f},{y:.1f})"

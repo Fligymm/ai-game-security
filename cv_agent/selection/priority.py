@@ -11,8 +11,9 @@ def select_target(
     states: list[TargetState],
     *,
     prefer_head: bool = True,
+    allow_body_fallback: bool = True,
 ) -> TargetState | None:
-    """Pick the aim target: nearest head, else nearest body, else nearest any."""
+    """Pick the aim target with an explicit body-fallback policy."""
     if not states:
         return None
 
@@ -23,6 +24,8 @@ def select_target(
     bodies = [s for s in states if s.cls_id == BODY_CLS]
     if prefer_head and heads:
         return min(heads, key=dist)
-    if bodies:
+    if allow_body_fallback and bodies:
         return min(bodies, key=dist)
-    return min(states, key=dist)
+    if not prefer_head and states:
+        return min(states, key=dist)
+    return None

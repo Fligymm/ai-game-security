@@ -7,7 +7,7 @@ processed continuously.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Iterator
 
 import cv2
@@ -30,6 +30,8 @@ class RealtimeLoopConfig:
     hotkeys_enabled: bool = True
     debug_overlay: bool = True
     window_name: str = "RealtimeAimLoop"
+    max_mouse_step: float = 24.0
+    mouse_deadzone: float = 0.5
 
 
 class RealtimeAimLoop:
@@ -71,12 +73,20 @@ class RealtimeAimLoop:
         result = self.pipeline.run(
             frame,
             algorithm=self.config.algorithm,
-            apply_mouse=self.config.apply_mouse and not self._mouse_paused(),
+            apply_mouse=False,
             delay_s=self.config.delay_s,
             prefer_head=self.config.prefer_head,
         )
-        if result.selected is None:
+        if result.selected is None or result.compensated_offset is None:
+            self.pipeline.controller.reset()
             self.pipeline.reset_prediction()
+        elif self.config.apply_mouse and not self._mouse_paused():
+            self.pipeline.controller.apply_correction(
+                *result.compensated_offset,
+                max_step=self.config.max_mouse_step,
+                deadzone=self.config.mouse_deadzone,
+            )
+            result = replace(result, applied_mouse=True)
         return result
 
     def iterate(self) -> Iterator[AimPipelineResult]:
@@ -128,6 +138,11 @@ class RealtimeAimLoop:
 
 if __name__ == "__main__":
     import argparse
+    from pathlib import Path
+
+    from cv_agent.orchestrator import AimPipeline
+    from vision.detection.yolo_detector import YOLODetector
+    from vision.stream.grabber import ScreenGrabber
 
     parser = argparse.ArgumentParser(description="Run the realtime ScreenGrabber -> AimPipeline closed loop")
     parser.add_argument("--algorithm", default=None, help="Trajectory algorithm name")
@@ -135,14 +150,34 @@ if __name__ == "__main__":
     parser.add_argument("--frames", type=int, default=None, help="Optional frame limit")
     parser.add_argument("--preview", action="store_true", help="Show ROI preview while running")
     parser.add_argument("--no-hotkeys", action="store_true", help="Disable global kill switch hotkeys")
+    parser.add_argument("--weights", default="yolov8n.pt", help="YOLO weights path")
+    parser.add_argument("--conf", type=float, default=0.5, help="Detection confidence threshold")
+    parser.add_argument("--roi", type=int, default=640, help="Centered square capture size")
+    parser.add_argument("--fps", type=int, default=144, help="Requested capture FPS")
+    parser.add_argument("--head-only", action="store_true", help="Never fall back to body/other classes")
+    parser.add_argument("--max-mouse-step", type=float, default=24.0, help="Maximum mouse pixels sent per frame")
+    parser.add_argument("--mouse-deadzone", type=float, default=0.5, help="Stop moving below this pixel error")
     args = parser.parse_args()
 
     config = RealtimeLoopConfig(
         algorithm=args.algorithm,
         apply_mouse=not args.no_mouse,
         hotkeys_enabled=not args.no_hotkeys,
+        max_mouse_step=args.max_mouse_step,
+        mouse_deadzone=args.mouse_deadzone,
     )
-    with RealtimeAimLoop(config=config) as loop:
+    grabber = ScreenGrabber(roi_width=args.roi, roi_height=args.roi, target_fps=args.fps)
+    detector = YOLODetector(Path(args.weights), conf=args.conf, coord_space="pixel")
+    expected_names = {0: "enemy_head", 1: "enemy_body"}
+    if detector.class_names != expected_names:
+        raise RuntimeError(
+            f"Unexpected model class mapping: {detector.class_names}; expected {expected_names}"
+        )
+    pipeline = AimPipeline(
+        detector=detector,
+        allow_body_fallback=not args.head_only,
+    )
+    with RealtimeAimLoop(grabber=grabber, pipeline=pipeline, config=config) as loop:
         results = loop.run(max_frames=args.frames, preview=args.preview)
     if results:
         last = results[-1]
