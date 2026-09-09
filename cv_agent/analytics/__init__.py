@@ -4,6 +4,8 @@ from .logger import TrajectoryLogger
 from .features import TrajectoryFeatureExtractor
 from .detector import TrajectoryDetector
 from .trajectory_schema import EventSegment, TrajectoryMetadata, TrajectorySession, TrajectoryTimeSeries
+from .performance import ControlPerformanceTracker
+from .sequence import TrajectorySequenceEncoder
 
 __all__ = [
     "EventSegment",
@@ -13,4 +15,6 @@ __all__ = [
     "TrajectoryMetadata",
     "TrajectorySession",
     "TrajectoryTimeSeries",
+    "ControlPerformanceTracker",
+    "TrajectorySequenceEncoder",
 ]

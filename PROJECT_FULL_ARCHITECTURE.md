@@ -178,7 +178,7 @@ Stage 1
 ```
 
 - **1.1 已完成**：`scripts/offset_visualize.py` 已接通检测、目标状态、屏幕中心偏移、Kalman 单步预测和轨迹统计；已有 `runs/predict/offset_analysis/output_analysis.jpg` 产物。
-- **1.2 部分完成**：`scripts/offline_benchmark.py video` 和 `test_video.py` 可做离线视频推理，`cv_agent/prediction/kalman.py` 已实现短期预测；但 `vision/tracking` 目前没有实际追踪器实现，仍缺少跨帧 ID、遮挡恢复、追踪指标和可复现实验报告，因此不能标记为完整完成。
+- **1.2 部分完成**：`vision/tracking` 已提供无第三方底层依赖的 `BaseTracker` 与 `KalmanTracker`，使用常速度状态预测和 IOU 关联维持全局整数 `track_id`，并通过 `lost_frames`/`max_disappeared` 支持遮挡恢复与过期清理；仍需补充正式视频基准指标和可复现实验报告。
 - **1.3 已完成**：`scripts/mouse_lock_smoke.py`、`scripts/offline_benchmark.py bot` 和 `runs/predict/mouse_lock_smoke/` 报告已形成最小链路验证。2026-09-09 使用仓库 `.venv` 执行 `offline_benchmark.py bot --frames 60`：`frames=60`、`detections=60`、`selected_frames=60`、`mean_fps=374.79`。该结果是合成 bot 的链路烟雾结果，不代表真实游戏效果。
 
 ### Stage 2：真实游戏动态闭环与环境验证（Real-Time Game Loop）
@@ -192,7 +192,7 @@ Stage 2
 
 - **2.1 部分完成**：`vision/stream/realtime_loop.py`、`vision/stream/grabber.py` 和 `vision/stream/safety.py` 已提供实时抓取、边界参数、ESC 暂停和 F12 停止；但仓库中尚未发现可审计的 `-insecure` 启动参数隔离、进程级沙箱或“默认永不触碰真实窗口”的强制门禁。当前安全措施应视为实验辅助保护，而不是环境隔离完成证明。
 - **2.2 已完成**：实时闭环入口已将 ScreenGrabber、YOLODetector、目标选择、Kalman、轨迹和控制器接通；已有 `runs/predict/bot_demo.avi`、`runs/predict/offline_mouse_demo.avi` 和最近一次提交“完成离线三阶段基准测试与游戏内实时吸附验证”作为仓库证据。结论仅限于本地/离线测试环境。
-- **2.3 进行中**：`runs/predict/mouse_lock_smoke/` 已记录 straightness、speed、jerk 等轨迹统计，但尚未看到统一的端到端时间戳、感知/预测/控制分段延迟、过冲率、稳态误差、抖动置信区间和参数扫描结果。下一步应先完成观测与报告，再决定参数变化。
+- **2.3 进行中**：`cv_agent/analytics/performance.py` 已提供 `ControlPerformanceTracker`，可记录抓取、推理、选择和控制时间戳，汇总 Mean/P95/P99、FPS、稳态误差、过冲和 Jerk RMS，并导出 JSON；仍需接入真实闭环采样，形成过冲率、抖动置信区间和参数扫描报告。
 
 ### Stage 3：隐蔽性与对抗性升级（Adversarial & Stealth Enhancement）
 
@@ -341,6 +341,10 @@ strict_lock            = True
 
 `cv_agent/analytics/features.py` 的 `TrajectoryFeatureExtractor` 提取路径长度、位移、直线性、速度/加速度、Jerk、反应时间、修正次数、过冲、停顿比例以及 FFT 高频/低频能量比和谱熵，并对空序列、短序列和除零场景提供保护。
 
+`cv_agent/analytics/sequence.py` 的 `TrajectorySequenceEncoder` 将 `TrajectorySession` 或其 JSON 字典转换为固定长度 NumPy 时序输入，包含位移、速度、加速度、转向角变化率、时间间隔和目标偏移特征；支持截断、零填充以及真实帧掩码输出，并对空轨迹和全零移动提供边界保护。
+
+`cv_agent/analytics/performance.py` 的 `ControlPerformanceTracker` 面向 Stage 2.3 延迟与控制表现量化，保存分阶段延迟、端到端延迟和 FPS，并计算最终稳态误差、目标穿越过冲事件/比例及离散 Jerk RMS，支持汇总 JSON 导出。
+
 `tools/plot_feature_distribution.py` 读取 human、bot_agent、synthetic 的 `features.json`，绘制 `acceleration_rms`、`jerk_mean`、`jerk_rms` 和 `zero_speed_fraction` 的 2x2 箱线图，输出为 `datasets/feature_distribution_comparison.png`，并已在 `-W error` 下通过无弃用警告验证。
 
 ### 14.3 机械与高级合成代理分层
@@ -360,9 +364,19 @@ strict_lock            = True
 ### 14.5 当前验证状态
 
 - `tests/test_analytics.py`：Schema、空/短/全零轨迹和 Synthetic JSON 流程。
+- `tests/test_sequence.py`：时序特征编码、定长填充/截断、掩码以及空/全零轨迹保护。
+- `tests/test_tracking.py`：多目标追踪 ID 唯一性、跨帧稳定性、遮挡恢复和过期清理。
+- `tests/test_priority_selection.py`：距离优先、Strict Lock、防止目标切换、丢失超时和锁定清理。
 - `tests/test_mechanical_bot.py`：恒速直线、零反应延迟、零停顿和机械极值特征。
 - `tests/test_detector.py`：三分类评估、报告生成和 `--binary` 兼容 API。
 - `tests/test_inference.py`：模型导出、加载、单条 Session 推理和概率和为 1。
 - 最近验证：检测器相关测试通过，analytics/simulation 编译检查通过，基线模型成功导出；绘图脚本在 `-W error` 下无弃用警告。
 
 因此，当前项目更准确的阶段判断是：**Stage 2.3 仍在进行，Stage 4.2 已具备离线特征与基线分类器的部分实现**。Stage 4.1 硬件/驱动规则、Stage 4.3 长程序列模型和 Stage 5 自动化闭环仍未完成。
+
+### 14.6 2026-09-09 本轮改动总结
+
+- 新增视觉侧轻量级跨帧多目标追踪接口，统一 `BaseTracker.update` 契约，并实现 IOU 关联、常速度预测、全局轨迹 ID、遮挡恢复和丢失清理。
+- 新增控制性能统计器，建立 Stage 2.3 的延迟与控制质量观测接口，覆盖 Mean/P95/P99、FPS、稳态误差、过冲和 Jerk RMS。
+- 新增轨迹序列编码器，将 `TrajectorySession` 转换为可供 GRU/Transformer 使用的固定长度 NumPy 序列，并输出 Padding 掩码。
+- 新增对应的 unittest 覆盖；截至 2026 年 9 月 9 日，`.venv\\Scripts\\python.exe -m unittest discover -s tests` 已通过。
