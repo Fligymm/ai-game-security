@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Literal
 
 
-TrajectorySource = Literal["human", "bot", "synthetic_adversarial"]
+TrajectorySource = Literal["human", "bot", "bot_agent", "synthetic_adversarial"]
 EventPhase = Literal[
     "reaction_phase",
     "coarse_move",
@@ -70,7 +70,7 @@ class TrajectorySession:
     def __post_init__(self) -> None:
         if not self.session_id:
             raise ValueError("session_id must not be empty")
-        if self.source not in {"human", "bot", "synthetic_adversarial"}:
+        if self.source not in {"human", "bot", "bot_agent", "synthetic_adversarial"}:
             raise ValueError(f"unsupported trajectory source: {self.source}")
         if self.target_distance_px < 0 or self.target_size_px < 0 or self.reaction_time_ms < 0:
             raise ValueError("trajectory metadata values must be non-negative")

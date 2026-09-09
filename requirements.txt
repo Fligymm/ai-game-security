@@ -19,6 +19,7 @@ numpy>=1.26.0
 pandas>=2.2.0
 scipy>=1.13.0
 scikit-learn>=1.5.0
+joblib>=1.4.0
 xgboost>=2.1.0
 
 # Visualization
