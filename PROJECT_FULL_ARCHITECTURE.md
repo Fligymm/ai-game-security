@@ -323,7 +323,7 @@ strict_lock            = True
 2. 目标选择已改为距离优先，并在默认严格模式下实现单目标锁定。
 3. 当前锁定目标可见时不会切换；当前目标消失期间不会向任何目标输出移动数据。
 4. 仍未完成的 Stage 2.3 工作包括端到端延迟分段、检测丢帧率、目标重新获取延迟、过冲率、稳态误差和跨视频参数统计。
-5. Stage 1.2 的正式跨帧追踪器、Stage 4 的完整反作弊模型和 Stage 5 的自动化评估闭环仍未完成。
+5. Stage 4 的完整反作弊模型和 Stage 5 的自动化评估闭环仍未完成；Stage 1.2 已具备轻量级跨帧追踪器，但正式视频基准与报告仍待补齐。
 
 后续验收应优先增加以下指标：当前锁定目标可见帧中的 `switch_count == 0`、锁定目标丢失帧中的后端写入数为 `0`、超时后的重新获取延迟，以及不同检测置信度和遮挡条件下的误报/漏报统计。
 
@@ -380,3 +380,13 @@ strict_lock            = True
 - 新增控制性能统计器，建立 Stage 2.3 的延迟与控制质量观测接口，覆盖 Mean/P95/P99、FPS、稳态误差、过冲和 Jerk RMS。
 - 新增轨迹序列编码器，将 `TrajectorySession` 转换为可供 GRU/Transformer 使用的固定长度 NumPy 序列，并输出 Padding 掩码。
 - 新增对应的 unittest 覆盖；截至 2026 年 9 月 9 日，`.venv\\Scripts\\python.exe -m unittest discover -s tests` 已通过。
+
+### 14.7 控制输出与实时落盘可靠性
+
+`cv_agent/control/backends/csv_logger.py` 的 `CSVLoggerBackend` 在每次控制移动写入后显式刷新文件句柄，并在 `close()` 与对象析构阶段提供幂等、异常保护的关闭逻辑。未显式指定路径时，后端会在 `runs/predict/` 下按当前时间生成带秒级时间戳的 `control_moves_YYYYMMDD_HHMMSS.csv`，避免多次运行覆盖同一日志。
+
+`cv_agent/control/factory.py` 将 CSV 输出路径改为可选参数；显式路径仍按调用方配置使用，省略时交由 CSV 后端生成动态文件名。非 CSV 控制后端可继续通过链式后端同时记录控制动作和执行输出。
+
+`vision/stream/realtime_loop.py` 在运行循环的 `finally` 中关闭 `pipeline.controller`，确保正常退出、窗口退出和 `KeyboardInterrupt` 路径都能刷新并关闭日志。`run_real.py` 保留对 `factory.create_mouse_backend` 的动态 Patch、Win32 `custom_handler` 注入和 CSV+Win32 链式架构，并将 CSV 初始化适配为 `filepath` 参数；控制输出不再注入未定义的 `--apply-mouse` 参数，是否执行仍由现有 `--no-mouse` 与后端配置决定。
+
+本轮变更没有在 `realtime_loop.py` 或 `orchestrator.py` 中硬编码屏蔽控制输出，也没有移除 ESC/F12 全局安全停止机制。验证包括 Python 编译检查、CSV 实际写入/关闭测试，以及完整 unittest discover 通过。

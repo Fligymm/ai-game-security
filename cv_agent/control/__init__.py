@@ -1,7 +1,7 @@
 """Aim controllers: direct, smooth, delayed, and strategy variants."""
 
 from .base import BaseMouseBackend
-from .backends import CSVLoggerBackend, CanvasVisualizerBackend, HardwareHIDBackend, Win32APIBackend
+from .backends import CSVLoggerBackend, CanvasVisualizerBackend, ChainedBackend, HardwareHIDBackend, Win32APIBackend
 from .mouse import AimController
 
 __all__ = [
@@ -9,6 +9,7 @@ __all__ = [
     "BaseMouseBackend",
     "CSVLoggerBackend",
     "CanvasVisualizerBackend",
+    "ChainedBackend",
     "HardwareHIDBackend",
     "Win32APIBackend",
 ]

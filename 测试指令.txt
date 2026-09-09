@@ -1,0 +1,11 @@
+.\.venv\Scripts\python.exe run_real.py `
+  --weights "D:\AI_Security\ai-game-security\runs\detect\cs2_detection_v2\weights\best.onnx" `
+  --conf 0.35 `
+  --roi 320 `
+  --fps 30 `
+  --head-only `
+  --max-mouse-step 16 `
+  --mouse-deadzone 1.0 `
+  --output-confirm-frames 3 `
+  --apply-mouse `
+  --preview

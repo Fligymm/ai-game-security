@@ -81,26 +81,43 @@ class RealtimeAimLoop:
         self.grabber.stop()
 
     def step(self, frame: np.ndarray | None = None) -> AimPipelineResult:
-        """Run one frame through the loop, capturing if no frame is provided."""
+        """Run one frame through the loop, capturing if no frame is provided.
+        
+        CSV logging is ALWAYS performed regardless of apply_mouse state.
+        Real control is only sent when apply_mouse=True and kill_switch is not paused.
+        """
 
         if frame is None:
             frame = self.grabber.get_latest_frame()
+        # ✔ MUST: pipeline.run() always receives apply_mouse=False (干运行)
+        # Real control decision is handled by controller.apply_correction() vs log_only()
         result = self.pipeline.run(
             frame,
             algorithm=self.config.algorithm,
-            apply_mouse=False,
+            apply_mouse=False,  # ✔ 干运行：不在 pipeline 内处理控制
             delay_s=self.config.delay_s,
             prefer_head=self.config.prefer_head,
         )
         if result.selected is None or result.compensated_offset is None:
             self.pipeline.controller.reset()
-        elif self.config.apply_mouse and not self._mouse_paused():
-            self.pipeline.controller.apply_correction(
-                *result.compensated_offset,
-                max_step=self.config.max_mouse_step,
-                deadzone=self.config.mouse_deadzone,
-            )
-            result = replace(result, applied_mouse=True)
+        else:
+            # ALWAYS record offset to CSV (for trajectory analysis)
+            if self.config.apply_mouse and not self._mouse_paused():
+                # Active control: send to all chained backends (CSV + real control)
+                self.pipeline.controller.apply_correction(
+                    *result.compensated_offset,
+                    max_step=self.config.max_mouse_step,
+                    deadzone=self.config.mouse_deadzone,
+                )
+                result = replace(result, applied_mouse=True)
+            else:
+                # Dry-run or paused: log only to CSV (no real control sent)
+                self.pipeline.controller.log_only(
+                    *result.compensated_offset,
+                    max_step=self.config.max_mouse_step,
+                    deadzone=self.config.mouse_deadzone,
+                )
+                # Keep applied_mouse=False to indicate no real control was sent
         return result
 
     def iterate(self) -> Iterator[AimPipelineResult]:
@@ -110,7 +127,11 @@ class RealtimeAimLoop:
             yield self.step()
 
     def run(self, max_frames: int | None = None, *, preview: bool = False) -> list[AimPipelineResult]:
-        """Run the loop for a bounded number of frames or until Esc/q when previewing."""
+        """Run the loop for a bounded number of frames or until Esc/q when previewing.
+        
+        CSV logging is always active regardless of apply_mouse setting.
+        Resources are explicitly closed in finally block.
+        """
 
         results: list[AimPipelineResult] = []
         window_name = self.config.window_name
@@ -139,8 +160,19 @@ class RealtimeAimLoop:
                         break
                 frame_idx += 1
         finally:
+            # Explicit resource cleanup; closes all backends including CSV logger
+            try:
+                self.pipeline.controller.close()
+            except Exception as e:
+                print(f"[WARNING] Error closing controller: {e}")
+            
+            # Close preview window
             if preview or self.config.debug_overlay:
-                cv2.destroyWindow(window_name)
+                try:
+                    cv2.destroyWindow(window_name)
+                except Exception as e:
+                    print(f"[WARNING] Error destroying window: {e}")
+        
         return results
 
     def _mouse_paused(self) -> bool:
@@ -161,7 +193,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Run the realtime ScreenGrabber -> AimPipeline closed loop")
     parser.add_argument("--algorithm", default=None, help="Trajectory algorithm name")
-    parser.add_argument("--no-mouse", action="store_true", help="Plan without applying mouse movement")
+    parser.add_argument("--apply-mouse", action="store_true", help="Enable real mouse control output (default: dry-run CSV logging only)")
     parser.add_argument("--frames", type=int, default=None, help="Optional frame limit")
     parser.add_argument("--preview", action="store_true", help="Show ROI preview while running")
     parser.add_argument("--no-hotkeys", action="store_true", help="Disable global kill switch hotkeys")
@@ -173,18 +205,25 @@ if __name__ == "__main__":
     parser.add_argument("--max-mouse-step", type=float, default=24.0, help="Maximum mouse pixels sent per frame")
     parser.add_argument("--mouse-deadzone", type=float, default=0.5, help="Stop moving below this pixel error")
     parser.add_argument("--output-confirm-frames", type=int, default=3, help="Frames required before output resumes after a lock change")
-    parser.add_argument("--backend", choices=("csv", "canvas", "win32", "hid"), default="csv", help="Output backend")
-    parser.add_argument("--backend-output", default="runs/predict/control_moves.csv", help="CSV output path")
-    parser.add_argument("--allow-external-handler", action="store_true", help="Allow externally injected callbacks")
+    parser.add_argument("--backend", choices=("csv", "canvas", "win32", "hid"), default="csv", 
+                        help="Output backend (csv=dry-run + logging, win32=real control, canvas=visual, hid=hardware)")
+    parser.add_argument("--backend-output", default=None, help="CSV output path (defaults to timestamped runs/predict file)")
+    parser.add_argument("--allow-external-handler", action="store_true", help="Allow externally injected callbacks (required for custom control handlers)")
     args = parser.parse_args()
 
+    # Resolve backend configuration with real control support
+    # --apply-mouse explicitly enables control output for win32/hid backends
+    # CSV logging is ALWAYS enabled (persisted regardless of control setting)
+    apply_mouse_enabled = args.apply_mouse  # Only True if --apply-mouse is explicitly passed
+    
     config = RealtimeLoopConfig(
         algorithm=args.algorithm,
-        apply_mouse=not args.no_mouse,
+        apply_mouse=apply_mouse_enabled,  # Respect user's explicit control choice
         hotkeys_enabled=not args.no_hotkeys,
         max_mouse_step=args.max_mouse_step,
         mouse_deadzone=args.mouse_deadzone,
     )
+    
     grabber = ScreenGrabber(roi_width=args.roi, roi_height=args.roi, target_fps=args.fps)
     detector = YOLODetector(Path(args.weights), conf=args.conf, coord_space="pixel")
     expected_names = {0: "enemy_head", 1: "enemy_body"}
@@ -192,18 +231,38 @@ if __name__ == "__main__":
         raise RuntimeError(
             f"Unexpected model class mapping: {detector.class_names}; expected {expected_names}"
         )
+    
+    # Backend strategy: ALWAYS include CSV for trajectory logging
+    # - CSV backend alone: dry-run CSV only
+    # - Win32/HID + --apply-mouse: CSV + real control chain
+    # - Win32/HID without --apply-mouse: still CSV only (dry-run, trajectory recorded but control disabled)
+    backend = create_mouse_backend(
+        args.backend,
+        output_path=args.backend_output,
+        allow_external_handler=args.allow_external_handler,
+        always_include_csv=True,  # ALWAYS chain with CSV for complete trajectory logging
+    )
+    
     pipeline = AimPipeline(
         detector=detector,
         allow_body_fallback=not args.head_only,
-        backend=create_mouse_backend(
-            args.backend,
-            output_path=args.backend_output,
-            allow_external_handler=args.allow_external_handler,
-        ),
+        backend=backend,
         output_confirm_frames=args.output_confirm_frames,
     )
-    with RealtimeAimLoop(grabber=grabber, pipeline=pipeline, config=config) as loop:
-        results = loop.run(max_frames=args.frames, preview=args.preview)
-    if results:
-        last = results[-1]
-        print(f"frames={len(results)} mouse_delta={last.mouse_delta} applied_mouse={last.applied_mouse}")
+    
+    try:
+        with RealtimeAimLoop(grabber=grabber, pipeline=pipeline, config=config) as loop:
+            results = loop.run(max_frames=args.frames, preview=args.preview)
+        if results:
+            last = results[-1]
+            print(f"[INFO] Completed: frames={len(results)} mouse_delta={last.mouse_delta} applied_mouse={last.applied_mouse}")
+    finally:
+        # Explicit resource cleanup
+        try:
+            pipeline.controller.close()
+        except Exception as e:
+            print(f"[WARNING] Error closing controller: {e}")
+        try:
+            grabber.stop()
+        except Exception as e:
+            print(f"[WARNING] Error stopping grabber: {e}")

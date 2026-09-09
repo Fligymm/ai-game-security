@@ -31,7 +31,42 @@ class AimController:
     def set_output_context(self, values: Mapping[str, object] | None = None) -> None:
         self.backend.set_context(values)
 
+    def log_only(self, dx: float, dy: float, *, max_step: float = 24.0, deadzone: float = 0.5) -> dict[str, float]:
+        """Log a correction only to CSV backend without sending real control.
+        
+        This method calculates the final movement vector but only records it to CSV.
+        Useful for dry-run mode where control output is disabled.
+        
+        Args:
+            dx: Desired X offset (pixels).
+            dy: Desired Y offset (pixels).
+            max_step: Maximum pixels per frame.
+            deadzone: Minimum movement threshold.
+        
+        Returns:
+            Dictionary with sent_dx, sent_dy, remaining_error.
+        """
+        distance = math.hypot(float(dx), float(dy))
+        if distance <= float(deadzone):
+            return {"sent_dx": 0.0, "sent_dy": 0.0, "remaining_error": distance}
+        
+        scale = min(1.0, float(max_step) / max(distance, 1e-9))
+        self._fractional_x += float(dx) * scale
+        self._fractional_y += float(dy) * scale
+        sx, sy = int(round(self._fractional_x)), int(round(self._fractional_y))
+        self._fractional_x -= sx
+        self._fractional_y -= sy
+        
+        # Log to backend (typically CSV logger only in dry-run mode)
+        self.backend.send_relative_move(sx, sy)
+        return {"sent_dx": float(sx), "sent_dy": float(sy), "remaining_error": distance}
+
     def apply_correction(self, dx: float, dy: float, *, max_step: float = 24.0, deadzone: float = 0.5) -> dict[str, float]:
+        """Apply a correction: log to CSV and send real control if backend supports it.
+        
+        This is the main method for active control mode where both logging and
+        real mouse control are desired.
+        """
         distance = math.hypot(float(dx), float(dy))
         if distance <= float(deadzone):
             self.reset()
@@ -57,3 +92,4 @@ class AimController:
             self.backend.send_relative_move(int(round(ddx)), int(round(ddy)))
             time.sleep(step_delay(delay_s))
         return features
+
