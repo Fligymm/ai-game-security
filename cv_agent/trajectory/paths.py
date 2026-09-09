@@ -181,7 +181,17 @@ def generate(name: str, dx: float, dy: float, **kwargs) -> Trajectory:
     key = name.lower().strip()
     if key not in GENERATORS:
         raise ValueError(f"unknown trajectory '{name}', expected {sorted(GENERATORS)}")
-    return GENERATORS[key](dx, dy, **kwargs)
+    trajectory = GENERATORS[key](dx, dy, **kwargs)
+    if bool(kwargs.get("lab_modulation", False)):
+        return lab_modulate(
+            trajectory,
+            enabled=True,
+            noise_scale=float(kwargs.get("noise_scale", 0.0)),
+            overshoot_probability=float(kwargs.get("overshoot_probability", 0.0)),
+            overshoot_range=tuple(kwargs.get("overshoot_range", (5.0, 15.0))),
+            seed=int(kwargs.get("modulation_seed", kwargs.get("seed", 0))),
+        )
+    return trajectory
 
 
 def smoothness_features(traj: Trajectory) -> dict[str, float]:
@@ -205,3 +215,56 @@ def smoothness_features(traj: Trajectory) -> dict[str, float]:
         "speed_std": speed_std,
         "jerk_mean": jerk_mean,
     }
+
+
+def lab_modulate(
+    trajectory: Trajectory,
+    *,
+    enabled: bool = False,
+    noise_scale: float = 0.0,
+    overshoot_probability: float = 0.0,
+    overshoot_range: tuple[float, float] = (5.0, 15.0),
+    seed: int = 0,
+) -> Trajectory:
+    """Apply reproducible perturbations for offline anti-cheat robustness data.
+
+    This is intentionally opt-in and tagged as lab data generation. The final
+    point is always restored to the requested target to keep labels exact.
+    """
+    if not enabled:
+        return trajectory
+    if noise_scale < 0 or not 0.0 <= overshoot_probability <= 1.0:
+        raise ValueError("invalid lab modulation parameters")
+    rng = np.random.default_rng(seed)
+    points = np.asarray(trajectory.points, dtype=np.float64)
+    if len(points) < 2:
+        return trajectory
+    target = points[-1].copy()
+    t = np.linspace(0.0, 1.0, len(points))
+    noise = np.zeros((len(points), 2), dtype=np.float64)
+    for octave, amplitude in ((1, 1.0), (2, 0.5), (4, 0.25)):
+        anchors = rng.normal(0.0, 1.0, (octave + 1, 2))
+        for axis in range(2):
+            noise[:, axis] += amplitude * np.interp(t, np.linspace(0, 1, octave + 1), anchors[:, axis])
+    noise *= float(noise_scale) * (np.sin(np.pi * t) ** 0.8)[:, None]
+    points += noise
+
+    overshoot_applied = False
+    low, high = overshoot_range
+    if low < 0 or high < low:
+        raise ValueError("invalid overshoot_range")
+    if rng.random() < overshoot_probability:
+        direction = target / max(float(np.linalg.norm(target)), 1e-9)
+        magnitude = rng.uniform(low, high)
+        pivot = max(1, len(points) - 2)
+        points[pivot:] += direction * magnitude
+        overshoot_applied = True
+    points[-1] = target
+    extras = dict(trajectory.extras)
+    extras.update({
+        "lab_modulation": 1.0,
+        "noise_scale": float(noise_scale),
+        "overshoot_probability": float(overshoot_probability),
+        "overshoot_applied": float(overshoot_applied),
+    })
+    return Trajectory(trajectory.name, [tuple(point) for point in points], extras)

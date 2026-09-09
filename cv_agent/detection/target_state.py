@@ -29,6 +29,7 @@ class TargetState:
     delta_y: float
     frame_w: int
     frame_h: int
+    track_id: int | None = None
 
     @property
     def offset(self) -> tuple[float, float]:

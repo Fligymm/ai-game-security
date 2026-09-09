@@ -1,6 +1,6 @@
 """Aim, camera, and target-tracking trajectory generation."""
 
-from .paths import GENERATORS, Trajectory, generate, smoothness_features
+from .paths import GENERATORS, Trajectory, generate, lab_modulate, smoothness_features
 from .catalog import (
 	TRAJECTORY_PROFILES,
 	TrajectoryFamily,
@@ -19,6 +19,7 @@ __all__ = [
 	"TrajectoryProfile",
 	"classify_trajectory",
 	"generate",
+	"lab_modulate",
 	"get_trajectory_profile",
 	"smoothness_features",
 	"trajectory_catalog",

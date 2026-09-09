@@ -18,6 +18,8 @@ if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
 
 from cv_agent.control.mouse import AimController
+from cv_agent.detection.target_state import TargetState
+from cv_agent.selection.priority import TargetSelector
 from cv_agent.trajectory.catalog import get_trajectory_profile, trajectory_catalog
 from cv_agent.trajectory.paths import GENERATORS, smoothness_features
 
@@ -42,6 +44,36 @@ def _format_summary(summary: dict[str, Any]) -> str:
     return "  ".join(parts)
 
 
+def _make_demo_state(x: float, size: float) -> TargetState:
+    return TargetState(
+        x1=x - size / 2,
+        y1=300.0 - size / 2,
+        x2=x + size / 2,
+        y2=300.0 + size / 2,
+        conf=0.9,
+        cls_id=0,
+        cls_name="enemy_head",
+        target_x=x,
+        target_y=300.0,
+        screen_cx=320.0,
+        screen_cy=300.0,
+        delta_x=x - 320.0,
+        delta_y=0.0,
+        frame_w=640,
+        frame_h=600,
+    )
+
+
+def _lock_demo_report() -> dict[str, int]:
+    selector = TargetSelector()
+    for _ in range(8):
+        selector.update([_make_demo_state(300.0, 40.0), _make_demo_state(338.0, 39.0)])
+    return {
+        "lock_switches": selector.state.switch_count,
+        "consecutive_lock_frames": selector.state.consecutive_lock_frames,
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Smoke test mouse lock + trajectory taxonomy")
     parser.add_argument("--algorithm", default="linear", choices=sorted(GENERATORS))
@@ -52,6 +84,9 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--delay-s", type=float, default=None)
     parser.add_argument("--apply-mouse", action="store_true", help="Send relative mouse movement")
+    parser.add_argument("--lab-modulation", action="store_true", help="Enable tagged offline perturbation data generation")
+    parser.add_argument("--noise-scale", type=float, default=0.0)
+    parser.add_argument("--overshoot-probability", type=float, default=0.0)
     parser.add_argument("--compare-all", action="store_true", help="Print every registered trajectory")
     parser.add_argument("--list", action="store_true", help="List trajectory catalog and exit")
     parser.add_argument("--out", type=Path, default=None, help="Optional path to save a text summary")
@@ -73,6 +108,10 @@ def main() -> None:
             steps=args.steps,
             alpha=args.alpha,
             seed=args.seed,
+            lab_modulation=args.lab_modulation,
+            noise_scale=args.noise_scale,
+            overshoot_probability=args.overshoot_probability,
+            modulation_seed=args.seed,
         )
         profile = get_trajectory_profile(name)
         features = smoothness_features(traj)
@@ -91,7 +130,11 @@ def main() -> None:
         print(f"  signals={','.join(profile.anticheat_signal)}")
         if name == args.algorithm:
             playback = controller.execute(traj, apply_mouse=args.apply_mouse, delay_s=args.delay_s)
-            print(_format_summary({"mouse_applied": float(args.apply_mouse), **playback}))
+        print(_format_summary({"mouse_applied": float(args.apply_mouse), **playback}))
+        print(_format_summary({**_lock_demo_report(), **{
+            "lab_modulation": int(traj.extras.get("lab_modulation", 0.0)),
+            "overshoot_applied": int(traj.extras.get("overshoot_applied", 0.0)),
+        }}))
         reports.append(line)
 
     if args.out is not None:

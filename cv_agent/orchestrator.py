@@ -13,7 +13,7 @@ import numpy as np
 from cv_agent.control.mouse import AimController
 from cv_agent.detection.target_state import TargetState, detections_to_states
 from cv_agent.prediction.kalman import Kalman2D
-from cv_agent.selection.priority import select_target
+from cv_agent.selection.priority import TargetSelector
 from cv_agent.trajectory.catalog import TrajectoryProfile, get_trajectory_profile
 from cv_agent.trajectory.paths import Trajectory
 from vision.detection.detection import Detection
@@ -59,6 +59,7 @@ class AimPipeline:
         prediction_enabled: bool = True,
         prediction_gain: float = 1.0,
         allow_body_fallback: bool = True,
+        selector: TargetSelector | None = None,
     ) -> None:
         self.detector = detector if detector is not None else YOLODetector()
         self.controller = controller if controller is not None else AimController()
@@ -68,6 +69,7 @@ class AimPipeline:
         self.prediction_enabled = bool(prediction_enabled)
         self.prediction_gain = float(prediction_gain)
         self.allow_body_fallback = bool(allow_body_fallback)
+        self.selector = selector if selector is not None else TargetSelector()
         self._last_selected_cls_id: int | None = None
         if not 0.0 <= self.prediction_gain <= 1.0:
             raise ValueError("prediction_gain must be in [0, 1]")
@@ -77,6 +79,7 @@ class AimPipeline:
 
         self.predictor = Kalman2D()
         self._last_selected_cls_id = None
+        self.selector.reset()
 
     def __call__(
         self,
@@ -115,7 +118,7 @@ class AimPipeline:
 
         detections = self.detector.detect_frame(frame)
         states = detections_to_states(detections, frame.shape, self.detector.class_names)
-        selected = select_target(
+        selected = self.selector.update(
             states,
             prefer_head=selected_preference,
             allow_body_fallback=self.allow_body_fallback,
