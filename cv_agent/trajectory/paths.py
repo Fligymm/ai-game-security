@@ -268,3 +268,8 @@ def lab_modulate(
         "overshoot_applied": float(overshoot_applied),
     })
     return Trajectory(trajectory.name, [tuple(point) for point in points], extras)
+
+
+def apply_lab_perturbation(trajectory: Trajectory, **kwargs) -> Trajectory:
+    """Compatibility name for offline perturbation dataset generation."""
+    return lab_modulate(trajectory, enabled=True, **kwargs)

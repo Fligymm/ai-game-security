@@ -15,6 +15,7 @@ class Detection:
     y2: float
     conf: float
     cls_id: int
+    track_id: int | None = None
 
     @property
     def bbox(self) -> tuple[float, float, float, float]:

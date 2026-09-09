@@ -66,8 +66,10 @@ def detection_to_state(
     """Convert one detector output into TargetState."""
     if isinstance(det, Detection):
         x1, y1, x2, y2, conf, cls_id = det.row
+        track_id = det.track_id
     else:
         x1, y1, x2, y2, conf, cls_id = det
+        track_id = None
     x1, y1, x2, y2 = float(x1), float(y1), float(x2), float(y2)
     height, width = int(frame_shape[0]), int(frame_shape[1])
     tx, ty, cx, cy, dx, dy = relative_offset(x1, y1, x2, y2, width, height)
@@ -89,6 +91,7 @@ def detection_to_state(
         delta_y=dy,
         frame_w=width,
         frame_h=height,
+        track_id=track_id,
     )
 
 

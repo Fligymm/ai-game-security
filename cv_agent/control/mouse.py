@@ -1,58 +1,37 @@
-"""Optional OS mouse playback of planned trajectories (lab / offline only)."""
+"""Backend-neutral controller for planning and relative movement output."""
 
 from __future__ import annotations
 
-import ctypes
-import sys
+import math
 import time
-from ctypes import wintypes
+from typing import Mapping
 
+from cv_agent.control.base import BaseMouseBackend
+from cv_agent.control.backends.csv_logger import CSVLoggerBackend
 from cv_agent.timing.step import step_delay
 from cv_agent.trajectory.paths import Trajectory, generate, smoothness_features
 
 
-MOUSEEVENTF_MOVE = 0x0001
-ULONG_PTR = getattr(wintypes, "ULONG_PTR", ctypes.c_size_t)
-
-
-def _send_relative(dx: int, dy: int) -> None:
-    if sys.platform != "win32" or (dx == 0 and dy == 0):
-        return
-    extra = ULONG_PTR(0)
-
-    class MOUSEINPUT(ctypes.Structure):
-        _fields_ = (
-            ("dx", wintypes.LONG),
-            ("dy", wintypes.LONG),
-            ("mouseData", wintypes.DWORD),
-            ("dwFlags", wintypes.DWORD),
-            ("time", wintypes.DWORD),
-            ("dwExtraInfo", ULONG_PTR),
-        )
-
-    class INPUT(ctypes.Structure):
-        _fields_ = (("type", wintypes.DWORD), ("mi", MOUSEINPUT))
-
-    inp = INPUT()
-    inp.type = 0
-    inp.mi = MOUSEINPUT(dx, dy, 0, MOUSEEVENTF_MOVE, 0, extra)
-    ctypes.windll.user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(inp))
-
-
 class AimController:
-    """Plan (ΔX, ΔY) → trajectory; optionally play as relative mouse moves."""
+    """Plan trajectories and send them to an injected output strategy."""
 
-    def __init__(self) -> None:
+    def __init__(self, backend: BaseMouseBackend | None = None) -> None:
+        self.backend = backend if backend is not None else CSVLoggerBackend("runs/predict/control_moves.csv")
         self._fractional_x = 0.0
         self._fractional_y = 0.0
 
     def reset(self) -> None:
         self._fractional_x = 0.0
         self._fractional_y = 0.0
+        self.backend.reset()
+
+    def close(self) -> None:
+        self.backend.close()
+
+    def set_output_context(self, values: Mapping[str, object] | None = None) -> None:
+        self.backend.set_context(values)
 
     def apply_correction(self, dx: float, dy: float, *, max_step: float = 24.0, deadzone: float = 0.5) -> dict[str, float]:
-        """Send one bounded relative correction for a realtime frame."""
-        import math
         distance = math.hypot(float(dx), float(dy))
         if distance <= float(deadzone):
             self.reset()
@@ -63,23 +42,18 @@ class AimController:
         sx, sy = int(round(self._fractional_x)), int(round(self._fractional_y))
         self._fractional_x -= sx
         self._fractional_y -= sy
-        _send_relative(sx, sy)
+        self.backend.send_relative_move(sx, sy)
         return {"sent_dx": float(sx), "sent_dy": float(sy), "remaining_error": distance}
 
     def plan(self, dx: float, dy: float, algorithm: str = "linear", **kwargs) -> Trajectory:
         return generate(algorithm, dx, dy, **kwargs)
 
-    def execute(
-        self,
-        traj: Trajectory,
-        *,
-        apply_mouse: bool = False,
-        delay_s: float | None = None,
-    ) -> dict[str, float]:
+    def execute(self, traj: Trajectory, *, apply_mouse: bool = False, delay_s: float | None = None) -> dict[str, float]:
         features = smoothness_features(traj)
+        self.set_output_context(traj.extras)
         if not apply_mouse:
             return features
         for ddx, ddy in traj.deltas:
-            _send_relative(int(round(ddx)), int(round(ddy)))
+            self.backend.send_relative_move(int(round(ddx)), int(round(ddy)))
             time.sleep(step_delay(delay_s))
         return features

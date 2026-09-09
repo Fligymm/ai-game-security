@@ -1,0 +1,44 @@
+{
+  "metadata": {
+    "session_id": "human_0041_12386177",
+    "source": "human",
+    "target_distance_px": 258.37956575549856,
+    "target_size_px": 28.0,
+    "reaction_time_ms": 468.1409999993775,
+    "seed": null
+  },
+  "time_series": {
+    "timestamps": [
+      0.0,
+      0.05170840000027965
+    ],
+    "x": [
+      881.0,
+      880.0
+    ],
+    "y": [
+      517.0,
+      517.0
+    ],
+    "dx": [
+      0,
+      -1
+    ],
+    "dy": [
+      0,
+      0
+    ]
+  },
+  "events": [
+    {
+      "phase": "reaction_phase",
+      "start_idx": 0,
+      "end_idx": 1
+    },
+    {
+      "phase": "coarse_move",
+      "start_idx": 1,
+      "end_idx": 2
+    }
+  ]
+}

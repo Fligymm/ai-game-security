@@ -12,6 +12,7 @@ from typing import Iterator
 
 import cv2
 import numpy as np
+import supervision as sv
 
 from cv_agent.orchestrator import AimPipeline, AimPipelineResult
 from vision.stream.grabber import ScreenGrabber
@@ -43,10 +44,24 @@ class RealtimeAimLoop:
         pipeline: AimPipeline | None = None,
         *,
         config: RealtimeLoopConfig | None = None,
+        tracker: sv.ByteTrack | None = None,
     ) -> None:
         self.grabber = grabber if grabber is not None else ScreenGrabber()
         self.pipeline = pipeline if pipeline is not None else AimPipeline()
         self.config = config if config is not None else RealtimeLoopConfig()
+        self.tracker = tracker if tracker is not None else sv.ByteTrack(
+            track_activation_threshold=0.25,
+            lost_track_buffer=30,
+            minimum_matching_threshold=0.8,
+        )
+        if pipeline is None:
+            self.pipeline = AimPipeline(
+                tracker=self.tracker,
+                require_external_track_id=True,
+            )
+        else:
+            # Ensure externally supplied pipelines use the loop-owned tracker.
+            self.pipeline.tracker = self.tracker
         self.kill_switch = GlobalHotkeyKillSwitch() if self.config.hotkeys_enabled else None
 
     def __enter__(self) -> RealtimeAimLoop:
@@ -79,7 +94,6 @@ class RealtimeAimLoop:
         )
         if result.selected is None or result.compensated_offset is None:
             self.pipeline.controller.reset()
-            self.pipeline.reset_prediction()
         elif self.config.apply_mouse and not self._mouse_paused():
             self.pipeline.controller.apply_correction(
                 *result.compensated_offset,
@@ -141,6 +155,7 @@ if __name__ == "__main__":
     from pathlib import Path
 
     from cv_agent.orchestrator import AimPipeline
+    from cv_agent.control.factory import create_mouse_backend
     from vision.detection.yolo_detector import YOLODetector
     from vision.stream.grabber import ScreenGrabber
 
@@ -157,6 +172,10 @@ if __name__ == "__main__":
     parser.add_argument("--head-only", action="store_true", help="Never fall back to body/other classes")
     parser.add_argument("--max-mouse-step", type=float, default=24.0, help="Maximum mouse pixels sent per frame")
     parser.add_argument("--mouse-deadzone", type=float, default=0.5, help="Stop moving below this pixel error")
+    parser.add_argument("--output-confirm-frames", type=int, default=3, help="Frames required before output resumes after a lock change")
+    parser.add_argument("--backend", choices=("csv", "canvas", "win32", "hid"), default="csv", help="Output backend")
+    parser.add_argument("--backend-output", default="runs/predict/control_moves.csv", help="CSV output path")
+    parser.add_argument("--allow-external-handler", action="store_true", help="Allow externally injected callbacks")
     args = parser.parse_args()
 
     config = RealtimeLoopConfig(
@@ -176,6 +195,12 @@ if __name__ == "__main__":
     pipeline = AimPipeline(
         detector=detector,
         allow_body_fallback=not args.head_only,
+        backend=create_mouse_backend(
+            args.backend,
+            output_path=args.backend_output,
+            allow_external_handler=args.allow_external_handler,
+        ),
+        output_confirm_frames=args.output_confirm_frames,
     )
     with RealtimeAimLoop(grabber=grabber, pipeline=pipeline, config=config) as loop:
         results = loop.run(max_frames=args.frames, preview=args.preview)

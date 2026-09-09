@@ -1,5 +1,5 @@
 """Target selection: nearest, in-view, priority, and switching."""
 
-from .priority import TargetLockState, TargetSelector, select_target
+from .priority import TargetLockState, TargetSelector, TargetSelectionConfig, select_target
 
-__all__ = ["TargetLockState", "TargetSelector", "select_target"]
+__all__ = ["TargetLockState", "TargetSelector", "TargetSelectionConfig", "select_target"]

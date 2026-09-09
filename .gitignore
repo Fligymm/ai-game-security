@@ -109,3 +109,5 @@ runs/
 .env.local
 *.pem
 *.key
+# Private local testing script
+run_real.py

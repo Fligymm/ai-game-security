@@ -242,3 +242,87 @@ Stage 5
 - 2026-09-09：`.venv\Scripts\python.exe -m compileall -q vision cv_agent scripts anticheat adversarial behavior benchmarks`，通过。
 - 2026-09-09：`.venv\Scripts\python.exe scripts/offline_benchmark.py bot --frames 60`，通过，60 帧均检测并选中目标。
 - 系统 Python 直接执行同一基准时缺少 `cv2`；后续运行应使用仓库 `.venv`，或先按 `requirements.txt` 配置依赖。
+
+## 12. 最新实现状态与变更清单（2026-09-09）
+
+本节补充最近一轮工程重构后的实际代码状态，优先级高于前文对旧版控制链路的概括。
+
+### 12.1 控制输出抽象层
+
+`cv_agent/control` 已从直接系统输入调用改为后端策略模式：
+
+```text
+AimController
+      ↓
+BaseMouseBackend
+      ├── CSVLoggerBackend       -> 离线 CSV 记录
+      ├── CanvasVisualizerBackend -> OpenCV 虚拟准星渲染
+      ├── Win32APIBackend         -> dry-run/回调兼容层
+      └── HardwareHIDBackend      -> 协议报文/Mock 回调层
+```
+
+- `cv_agent/control/base.py` 定义统一的相对位移、重置和关闭接口。
+- `cv_agent/control/mouse.py` 只负责轨迹规划、步幅限制、分数累积和后端调用，不再包含系统鼠标 API。
+- `cv_agent/control/factory.py` 统一创建 `csv`、`canvas`、`win32` 和 `hid` 后端。
+- 默认后端为 CSV，输出可审计的时间戳、`dx/dy` 和轨迹元数据。
+- Win32 后端默认只记录 `self.moves`；外部处理必须通过显式注入的 `custom_handler`。
+- HID 后端默认只记录 `self.mock_packets`；外部写入必须通过显式注入的 `custom_writer`。
+- 当前仓库不在控制后端中导入 `ctypes`、调用 `user32` 或打开物理 HID/串口设备。
+
+### 12.2 目标选择与严格锁定
+
+`cv_agent/selection/priority.py` 是唯一的 selector 实现，`cv_agent/control/target_selector.py` 仅提供兼容导出入口。
+
+当前默认配置为：
+
+```text
+distance_weight       = 0.80
+confidence_weight     = 0.10
+head_weight           = 0.10
+hysteresis_bonus      = 0.30
+lock_timeout_frames   = 5
+min_lock_frames       = 15
+switch_confirm_frames = 5
+switch_cooldown_frames= 20
+clear_distance_ratio  = 0.65
+strict_lock            = True
+```
+
+当前决策规则：
+
+- 无锁定目标时，先按到准星的欧式距离选择最近目标；置信度和头部类别只用于近距离目标的平局处理。
+- `strict_lock=True` 时，只要当前锁定目标仍在当前检测结果中，直接返回当前目标，不允许其他目标抢锁。
+- 当前锁定目标消失时返回 `None`，控制器不生成、不发送移动数据。
+- 在 `lock_timeout_frames` 内保持锁定状态但禁止输出；达到超时后清除旧锁，后续帧才允许重新选择目标。
+- 非严格模式仍保留最小持锁帧、连续候选确认帧和切换冷却，供离线算法对比实验使用。
+- `TargetState.track_id` 支持外部追踪器 ID；缺少 ID 时使用短期最近邻关联作为临时兼容方案。
+
+### 12.3 轨迹实验与反作弊数据
+
+`cv_agent/trajectory/paths.py` 已增加 `lab_modulate()` 及兼容名称 `apply_lab_perturbation()`：
+
+- 支持固定 seed 的多频段连续扰动，用于离线鲁棒性数据集生成。
+- 支持显式配置的实验性过冲标记。
+- 强制将最终轨迹点恢复为目标点，保持标签精确。
+- 在 `Trajectory.extras` 中记录扰动开关、噪声尺度、过冲概率和是否实际过冲。
+- 该功能默认关闭，只用于离线防御评估，不作为真实环境的隐蔽控制能力验收项。
+
+### 12.4 基准脚本与测试
+
+- `scripts/benchmark_control_backends.py` 支持离线视频、CSV 后端、Canvas 后端、目标切换次数、锁定帧数、FPS、路径长度和 Jerk 汇总。
+- `scripts/mouse_lock_smoke.py` 支持轨迹统计、锁定稳定性日志和实验扰动元数据输出。
+- `tests/test_selection_trajectory.py` 覆盖轨迹终点收敛、固定 seed 可复现和基础锁定逻辑。
+- `tests/test_target_selector.py` 覆盖近似分数抗震荡、严格锁定、目标丢失保护和超时重新选择。
+- 2026-09-09 编译检查通过；已有 unittest 测试通过。当前 `.venv` 未安装 `pytest`，pytest 文件需安装 pytest 后执行。
+
+## 13. 当前阶段结论（更新）
+
+项目仍处于 **Stage 2.3**，但控制层与目标锁定的工程基线已完成一次重要收紧：
+
+1. 离线控制输出已经后端化，默认可记录、可回放、可视化，避免控制算法直接依赖系统输入 API。
+2. 目标选择已改为距离优先，并在默认严格模式下实现单目标锁定。
+3. 当前锁定目标可见时不会切换；当前目标消失期间不会向任何目标输出移动数据。
+4. 仍未完成的 Stage 2.3 工作包括端到端延迟分段、检测丢帧率、目标重新获取延迟、过冲率、稳态误差和跨视频参数统计。
+5. Stage 1.2 的正式跨帧追踪器、Stage 4 的完整反作弊模型和 Stage 5 的自动化评估闭环仍未完成。
+
+后续验收应优先增加以下指标：当前锁定目标可见帧中的 `switch_count == 0`、锁定目标丢失帧中的后端写入数为 `0`、超时后的重新获取延迟，以及不同检测置信度和遮挡条件下的误报/漏报统计。
