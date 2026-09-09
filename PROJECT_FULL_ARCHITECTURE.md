@@ -214,7 +214,7 @@ Stage 4
 └── 4.3 长程行为序列与反应时间建模                           [未开始 ☐]
 ```
 
-- **4.2 部分完成**：`anticheat/statistical/__init__.py` 已实现轨迹长度、直线度、速度、加速度、Jerk、方向变化、平滑度、规律性和 screening heuristic 等统计计算，并可读取 JSON/CSV 轨迹；目前不是训练好的分类器，也没有频域特征、基线数据集、阈值校准、ROC/PR 或误报率报告。
+- **4.2 部分完成**：`anticheat/statistical/__init__.py` 已实现基础轨迹统计；`cv_agent/analytics/features.py` 进一步提供路径长度、位移、直线性、速度/加速度、Jerk、反应时间、修正次数、过冲、停顿比例以及 FFT 高频/低频能量比和谱熵。`tools/train_baseline_detector.py` 已提供 human、bot_agent、synthetic 三分类基线、OOF ROC-AUC/PR-AUC、混淆矩阵、分类报告和特征重要性报告；仍需扩充独立验证集、阈值校准和跨来源泛化评估。
 - **4.1/4.3 未开始**：`anticheat/rules`、`anticheat/sequence_models`、`anticheat/transformer` 和 `anticheat/ensemble` 目前没有实质检测器实现或评估产物。
 
 ### Stage 5：自动化攻防演进闭环（Self-Attack / Defense Evaluation）
@@ -326,3 +326,43 @@ strict_lock            = True
 5. Stage 1.2 的正式跨帧追踪器、Stage 4 的完整反作弊模型和 Stage 5 的自动化评估闭环仍未完成。
 
 后续验收应优先增加以下指标：当前锁定目标可见帧中的 `switch_count == 0`、锁定目标丢失帧中的后端写入数为 `0`、超时后的重新获取延迟，以及不同检测置信度和遮挡条件下的误报/漏报统计。
+
+## 14. 反作弊研究数据流与模型产物（2026-09-09）
+
+本节记录最近完成的离线行为安全研究基础设施。控制、目标锁定和轨迹规划逻辑保持既有边界；本节新增内容主要消费已经导出的轨迹数据，不修改冻结的移动逻辑。
+
+### 14.1 统一轨迹 Schema 与 Logger
+
+`cv_agent/analytics/trajectory_schema.py` 定义统一的 `TrajectorySession`，包含 metadata、time_series 和 events 三部分，并兼容早期扁平 JSON 与当前嵌套 JSON 格式。来源类型包括 `human`、兼容旧值 `bot`、`bot_agent` 和 `synthetic_adversarial`。
+
+`cv_agent/analytics/logger.py` 提供显式 `append_point`、`add_frame`、事件标注、JSON 导出和可选 Parquet 导出；不包含全局 Hook、系统输入 API 或 HID 注入。`tools/capture_human.py` 使用 800x600 tkinter 窗口，通过显式 Motion/Button 事件采集本地研究数据。
+
+### 14.2 特征提取与可视化
+
+`cv_agent/analytics/features.py` 的 `TrajectoryFeatureExtractor` 提取路径长度、位移、直线性、速度/加速度、Jerk、反应时间、修正次数、过冲、停顿比例以及 FFT 高频/低频能量比和谱熵，并对空序列、短序列和除零场景提供保护。
+
+`tools/plot_feature_distribution.py` 读取 human、bot_agent、synthetic 的 `features.json`，绘制 `acceleration_rms`、`jerk_mean`、`jerk_rms` 和 `zero_speed_fraction` 的 2x2 箱线图，输出为 `datasets/feature_distribution_comparison.png`，并已在 `-W error` 下通过无弃用警告验证。
+
+### 14.3 机械与高级合成代理分层
+
+`cv_agent/simulation/mechanical_bot.py` 新增 `MechanicalBotAgent`，作为纯机械控制对照基线：无反应延迟、恒速直线插值、无微调、仅标注 `coarse_move`，来源为 `bot_agent`。
+
+`cv_agent/simulation/synthetic_agent.py` 是高级分层合成代理的既有实现，当前按项目约束视为冻结文件。本轮没有修改、重写或重构该文件；其输出仅用于离线防御性评估和数据分布对比。
+
+### 14.4 基线检测器与推理管道
+
+`tools/train_baseline_detector.py` 默认执行三分类：`0=human`、`1=bot_agent`、`2=synthetic`；同时保留 `--binary` 进行 human-vs-bot 兼容评估。脚本使用每折独立的中位数填补和标准化管道，输出 OOF ROC-AUC、宏平均 PR-AUC、混淆矩阵、Classification Report，以及前十项特征的相对权重和累计贡献率。
+
+训练完成后，模型包 `models/baseline_detector.joblib` 包含最终全量训练的 Random Forest、`SimpleImputer`、`StandardScaler`、特征名、类别映射和模式信息。`cv_agent/analytics/detector.py` 的 `TrajectoryDetector` 可加载该模型包，对单个 `TrajectorySession` 自动提取特征并返回预测类别、概率分布与特征值。
+
+默认评估报告保存为 `datasets/evaluation_report.json`。这些产物仅描述离线数据上的检测能力，不能推断真实环境中的反作弊效果。
+
+### 14.5 当前验证状态
+
+- `tests/test_analytics.py`：Schema、空/短/全零轨迹和 Synthetic JSON 流程。
+- `tests/test_mechanical_bot.py`：恒速直线、零反应延迟、零停顿和机械极值特征。
+- `tests/test_detector.py`：三分类评估、报告生成和 `--binary` 兼容 API。
+- `tests/test_inference.py`：模型导出、加载、单条 Session 推理和概率和为 1。
+- 最近验证：检测器相关测试通过，analytics/simulation 编译检查通过，基线模型成功导出；绘图脚本在 `-W error` 下无弃用警告。
+
+因此，当前项目更准确的阶段判断是：**Stage 2.3 仍在进行，Stage 4.2 已具备离线特征与基线分类器的部分实现**。Stage 4.1 硬件/驱动规则、Stage 4.3 长程序列模型和 Stage 5 自动化闭环仍未完成。
