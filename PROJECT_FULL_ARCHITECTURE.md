@@ -163,3 +163,82 @@ experiments 目录用于存放实验配置、运行日志和研究结果归档�
 这个项目更像一个研究型框架，而不是单一功能程序。[cite: 1] 它把视觉理解、控制模拟、行为统计、异常检测和对抗研究组织到同一个仓库中，便于持续扩展和交叉验证。[cite: 1]
 
 对协作人员和其他 LLM 来说，最重要的是记住模块边界和数据流方向。[cite: 1] 只要按“看见、筛选、预测、规划、输出、记录、识别、对抗、评估、可视化”这一顺序去理解，整个项目的结构就会非常清楚。[cite: 1]
+
+## 9. 当前阶段进度（2026-09-09）
+
+以下状态以当前仓库中的可运行入口、测试产物和目录实现为准。目录或 `__init__.py` 存在只能说明模块边界已预留，不能单独作为功能完成的证据。
+
+### Stage 1：离线算法与基准测试（Offline Benchmark）
+
+```text
+Stage 1
+├── 1.1 静态图像检测与坐标转换（Vision Offset）          [已完成 ✅]
+├── 1.2 离线视频追踪与卡尔曼预测（Video Tracking & Kalman） [部分完成 ◐]
+└── 1.3 低速 Bot 与鼠标控制 Smoke 测试（Mouse Lock Smoke） [已完成 ✅]
+```
+
+- **1.1 已完成**：`scripts/offset_visualize.py` 已接通检测、目标状态、屏幕中心偏移、Kalman 单步预测和轨迹统计；已有 `runs/predict/offset_analysis/output_analysis.jpg` 产物。
+- **1.2 部分完成**：`scripts/offline_benchmark.py video` 和 `test_video.py` 可做离线视频推理，`cv_agent/prediction/kalman.py` 已实现短期预测；但 `vision/tracking` 目前没有实际追踪器实现，仍缺少跨帧 ID、遮挡恢复、追踪指标和可复现实验报告，因此不能标记为完整完成。
+- **1.3 已完成**：`scripts/mouse_lock_smoke.py`、`scripts/offline_benchmark.py bot` 和 `runs/predict/mouse_lock_smoke/` 报告已形成最小链路验证。2026-09-09 使用仓库 `.venv` 执行 `offline_benchmark.py bot --frames 60`：`frames=60`、`detections=60`、`selected_frames=60`、`mean_fps=374.79`。该结果是合成 bot 的链路烟雾结果，不代表真实游戏效果。
+
+### Stage 2：真实游戏动态闭环与环境验证（Real-Time Game Loop）
+
+```text
+Stage 2
+├── 2.1 安全测试环境搭建（-insecure 参数隔离）             [部分完成 ◐]
+├── 2.2 离线 Bot 环境实时吸附验证（CS2 Bot Test）          [已完成 ✅]
+└── 2.3 延迟/过冲/抖动排查与参数微调（Latency & Overshoot） [进行中 ⏳]
+```
+
+- **2.1 部分完成**：`vision/stream/realtime_loop.py`、`vision/stream/grabber.py` 和 `vision/stream/safety.py` 已提供实时抓取、边界参数、ESC 暂停和 F12 停止；但仓库中尚未发现可审计的 `-insecure` 启动参数隔离、进程级沙箱或“默认永不触碰真实窗口”的强制门禁。当前安全措施应视为实验辅助保护，而不是环境隔离完成证明。
+- **2.2 已完成**：实时闭环入口已将 ScreenGrabber、YOLODetector、目标选择、Kalman、轨迹和控制器接通；已有 `runs/predict/bot_demo.avi`、`runs/predict/offline_mouse_demo.avi` 和最近一次提交“完成离线三阶段基准测试与游戏内实时吸附验证”作为仓库证据。结论仅限于本地/离线测试环境。
+- **2.3 进行中**：`runs/predict/mouse_lock_smoke/` 已记录 straightness、speed、jerk 等轨迹统计，但尚未看到统一的端到端时间戳、感知/预测/控制分段延迟、过冲率、稳态误差、抖动置信区间和参数扫描结果。下一步应先完成观测与报告，再决定参数变化。
+
+### Stage 3：隐蔽性与对抗性升级（Adversarial & Stealth Enhancement）
+
+```text
+Stage 3
+├── 3.1 双机隔离（采集卡 + 副机推理）                       [未开始 ☐]
+├── 3.2 硬件伪装/物理注入                                    [未开始 ☐]
+└── 3.3 轨迹生物拟合/动态触发                                [未开始 ☐]
+```
+
+`adversarial/evasion`、`adversarial/robustness` 和 `adversarial/adversarial_training` 当前主要是包占位。仓库没有 DMA、采集卡、Kmbox、VID/PID 伪装、Perlin 噪声或动态 ROI 的实现证据。涉及硬件注入、设备伪装或降低商业反作弊可检测性的工作不属于本仓库当前可确认的完成范围；后续如继续，只能按隔离实验中的防御评估、检测鲁棒性和可审计模拟来定义验收标准。
+
+### Stage 4：反作弊系统评估与特征对抗（Anti-Cheat Evaluation & Rules）
+
+```text
+Stage 4
+├── 4.1 硬件/驱动层规则检测                                [未开始 ☐]
+├── 4.2 轨迹特征与 Jerk/频域统计分析                         [部分完成 ◐]
+└── 4.3 长程行为序列与反应时间建模                           [未开始 ☐]
+```
+
+- **4.2 部分完成**：`anticheat/statistical/__init__.py` 已实现轨迹长度、直线度、速度、加速度、Jerk、方向变化、平滑度、规律性和 screening heuristic 等统计计算，并可读取 JSON/CSV 轨迹；目前不是训练好的分类器，也没有频域特征、基线数据集、阈值校准、ROC/PR 或误报率报告。
+- **4.1/4.3 未开始**：`anticheat/rules`、`anticheat/sequence_models`、`anticheat/transformer` 和 `anticheat/ensemble` 目前没有实质检测器实现或评估产物。
+
+### Stage 5：自动化攻防演进闭环（Self-Attack / Defense Evaluation）
+
+```text
+Stage 5
+└── adversarial 生成/anticheat 检出率评估/无监督迭代            [未开始 ☐]
+```
+
+当前没有可验证的生成器、检测率评估流水线、实验注册、数据版本控制或自动迭代门禁。因此 Stage 5 不能从现有目录结构推断为已启动。
+
+## 10. 当前结论与优先级
+
+项目目前处于 **Stage 2.3 参数与测量完善阶段**：Stage 1 的离线主链路和 Stage 2.2 的离线/本地闭环已具备可运行证据，但追踪、反作弊建模、对抗评估和自动化闭环仍未形成可复现实验系统。
+
+建议的下一步顺序是：
+
+1. 固化 Stage 2.1 的实验边界：默认 `apply_mouse=False`，为真实输入输出增加显式隔离配置和启动审计信息。
+2. 为 Stage 2.3 增加统一时间戳与指标报告，覆盖端到端延迟、过冲、稳态误差、抖动和不同参数配置。
+3. 补齐 Stage 1.2 的跨帧追踪器与离线指标，再进入大规模行为数据采集。
+4. 以防御目标实现 Stage 4 的规则/统计基线，随后再做序列模型；Stage 3 的硬件注入、设备伪装和隐蔽性目标不作为当前工程验收项。
+
+## 11. 验证记录
+
+- 2026-09-09：`.venv\Scripts\python.exe -m compileall -q vision cv_agent scripts anticheat adversarial behavior benchmarks`，通过。
+- 2026-09-09：`.venv\Scripts\python.exe scripts/offline_benchmark.py bot --frames 60`，通过，60 帧均检测并选中目标。
+- 系统 Python 直接执行同一基准时缺少 `cv2`；后续运行应使用仓库 `.venv`，或先按 `requirements.txt` 配置依赖。
