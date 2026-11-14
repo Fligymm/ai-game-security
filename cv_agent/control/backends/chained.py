@@ -26,6 +26,10 @@ class ChainedBackend(BaseMouseBackend):
         self._backends = list(backends)
         self._strict = bool(strict)
 
+    @property
+    def supports_real_output(self) -> bool:
+        return any(getattr(backend, "supports_real_output", False) for backend in self._backends)
+
     def send_relative_move(self, dx: int, dy: int) -> None:
         """Send relative movement to all backends."""
         for backend in self._backends:

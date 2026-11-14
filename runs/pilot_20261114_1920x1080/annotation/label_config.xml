@@ -1,0 +1,7 @@
+<View>
+  <Image name="image" value="$image" zoom="true" zoomControl="true" rotateControl="false"/>
+  <RectangleLabels name="label" toName="image">
+    <Label value="enemy_head" background="#FF3B30"/>
+    <Label value="enemy_body" background="#007AFF"/>
+  </RectangleLabels>
+</View>

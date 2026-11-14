@@ -53,9 +53,17 @@ def create_mouse_backend(
     if key == "canvas":
         primary_backend = CanvasVisualizerBackend()
     elif key == "win32":
-        primary_backend = Win32APIBackend(dry_run=True, custom_handler=custom_handler)
+        # A handler may only be injected through the explicit opt-in path above.
+        # Without one the backend stays dry; with one it becomes a real sink.
+        primary_backend = Win32APIBackend(
+            dry_run=custom_handler is None,
+            custom_handler=custom_handler,
+        )
     elif key == "hid":
-        primary_backend = HardwareHIDBackend(mock=True, custom_writer=custom_writer)
+        primary_backend = HardwareHIDBackend(
+            mock=custom_writer is None,
+            custom_writer=custom_writer,
+        )
     else:
         raise ValueError(f"unknown backend '{name}', expected csv, canvas, win32, or hid")
     

@@ -31,7 +31,7 @@ def test_extracts_kinematic_and_event_features() -> None:
     assert features["path_length"] > features["displacement"]
     assert 0.0 < features["straightness"] <= 1.0
     assert features["speed_mean"] > 0.0
-    assert features["reaction_time_ms"] == 100.0
+    assert features["reaction_time_ms"] == 200.0
     assert features["correction_count"] == 1
     assert features["overshoot"] is True
 
@@ -56,3 +56,20 @@ def test_frequency_features_are_finite_and_guard_short_sequences() -> None:
     assert short_features["hf_lf_energy_ratio"] == 0.0
     assert short_features["spectral_entropy"] == 0.0
     assert all(np.isfinite(float(value)) for value in short_features.values() if isinstance(value, (int, float)))
+
+
+def test_reaction_time_ignores_initial_spawn_to_first_event_jump() -> None:
+    session = TrajectorySession(
+        session_id="spawn-jump",
+        source="human",
+        target_distance_px=60.0,
+        target_size_px=20.0,
+        reaction_time_ms=0.0,
+        timestamps=[0.0, 0.4, 0.5],
+        x=[100.0, 160.0, 160.0],
+        y=[100.0, 160.0, 160.0],
+        dx=[0, 60, 0],
+        dy=[0, 60, 0],
+    )
+    features = TrajectoryFeatureExtractor().extract(session)
+    assert features["reaction_time_ms"] == 400.0

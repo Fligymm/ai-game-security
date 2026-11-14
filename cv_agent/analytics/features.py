@@ -45,7 +45,7 @@ class TrajectoryFeatureExtractor:
             "acceleration_rms": self._rms(np.linalg.norm(acceleration, axis=1)) if len(acceleration) else 0.0,
             "jerk_mean": float(np.mean(jerk_mag)) if len(jerk_mag) else 0.0,
             "jerk_rms": self._rms(jerk_mag),
-            "reaction_time_ms": self._reaction_time_ms(session, segments),
+            "reaction_time_ms": self._reaction_time_ms(session),
             "correction_count": self._correction_count(session, segments),
             "overshoot": self._overshoot(session, segments),
             "zero_speed_fraction": self._zero_speed_fraction(speeds, dt),
@@ -53,10 +53,19 @@ class TrajectoryFeatureExtractor:
         result.update(self._frequency_features(speeds, timestamps))
         return result
 
-    def _reaction_time_ms(self, session: TrajectorySession, segments: np.ndarray) -> float:
-        if not len(session.timestamps) or not len(segments):
+    def _reaction_time_ms(self, session: TrajectorySession) -> float:
+        """Time of the first logged movement.
+
+        Use the explicit ``dx/dy`` deltas rather than position differences.
+        Capture tools may start at an absolute cursor position and only log the
+        first move later; differencing positions would then treat the initial
+        jump from spawn to the first event as movement at t=0.
+        """
+
+        if not len(session.timestamps) or not len(session.dx):
             return 0.0
-        magnitudes = np.linalg.norm(segments, axis=1)
+        deltas = np.column_stack((session.dx, session.dy)).astype(np.float64, copy=False)
+        magnitudes = np.linalg.norm(deltas, axis=1)
         indices = np.flatnonzero(magnitudes >= self.movement_threshold_px)
         return float(session.timestamps[int(indices[0])] * 1000.0) if len(indices) else 0.0
 

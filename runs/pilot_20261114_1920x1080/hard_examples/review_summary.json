@@ -1,0 +1,57 @@
+{
+  "ok": true,
+  "review": "D:\\AI_Security\\ai-game-security\\runs\\pilot_20261114_1920x1080\\hard_examples\\review_final.csv",
+  "total": 43,
+  "reviewed": 43,
+  "missing": [],
+  "invalid": [],
+  "counts": {
+    "label_boundary": 1,
+    "small": 23,
+    "clear_miss": 11,
+    "model_localization": 3,
+    "low_contrast": 3,
+    "motion_blur": 1,
+    "occluded": 1
+  },
+  "by_scene": {
+    "static_target": {
+      "label_boundary": 1,
+      "small": 12,
+      "clear_miss": 4,
+      "model_localization": 3
+    },
+    "slow_strafe": {
+      "clear_miss": 7,
+      "low_contrast": 2,
+      "small": 10,
+      "motion_blur": 1,
+      "occluded": 1
+    },
+    "fast_strafe": {
+      "low_contrast": 1,
+      "small": 1
+    }
+  },
+  "by_class": {
+    "enemy_head": {
+      "label_boundary": 1,
+      "small": 23,
+      "clear_miss": 11,
+      "model_localization": 3,
+      "low_contrast": 3,
+      "motion_blur": 1,
+      "occluded": 1
+    }
+  },
+  "allowed": [
+    "clear_miss",
+    "label_boundary",
+    "low_contrast",
+    "model_localization",
+    "motion_blur",
+    "occluded",
+    "other",
+    "small"
+  ]
+}

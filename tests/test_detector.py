@@ -18,7 +18,12 @@ def test_train_and_eval_on_tiny_feature_dataset(tmp_path) -> None:
             for index in range(5)
         }
         (target / "features.json").write_text(json.dumps(payload), encoding="utf-8")
-    result = train_and_eval(tmp_path, n_splits=5, print_fn=lambda _: None)
+    result = train_and_eval(
+        tmp_path,
+        n_splits=5,
+        model_path=tmp_path / "models" / "baseline_detector.joblib",
+        print_fn=lambda _: None,
+    )
     assert result["X"].shape == (15, 3)
     assert result["mode"] == "multiclass"
     assert result["confusion_matrix"].shape == (3, 3)
@@ -35,6 +40,12 @@ def test_binary_compatibility(tmp_path) -> None:
         target.mkdir(parents=True)
         payload = {str(i): {"jerk_rms": float(i + (100 if directory == "bot_agent" else 0))} for i in range(5)}
         (target / "features.json").write_text(json.dumps(payload), encoding="utf-8")
-    result = train_and_eval(tmp_path, binary=True, n_splits=5, print_fn=lambda _: None)
+    result = train_and_eval(
+        tmp_path,
+        binary=True,
+        n_splits=5,
+        model_path=tmp_path / "models" / "baseline_detector_binary.joblib",
+        print_fn=lambda _: None,
+    )
     assert result["mode"] == "binary"
     assert result["confusion_matrix"].shape == (2, 2)

@@ -1,0 +1,41 @@
+{
+  "ok": true,
+  "model": "runs\\detect\\cs2_detection_v2\\weights\\best.onnx",
+  "conf": 0.35,
+  "iou": 0.5,
+  "imgsz": 640,
+  "class_ids": [
+    0
+  ],
+  "images": 90,
+  "predictions": 218,
+  "missed": 43,
+  "by_class": {
+    "enemy_head": 43
+  },
+  "by_scene": {
+    "static_target": 20,
+    "slow_strafe": 21,
+    "fast_strafe": 2
+  },
+  "failure_types": [
+    "small",
+    "occluded",
+    "motion_blur",
+    "low_contrast",
+    "label_boundary",
+    "model_localization",
+    "clear_miss",
+    "other"
+  ],
+  "contact_sheets": [
+    "fast_strafe_01.jpg",
+    "slow_strafe_01.jpg",
+    "slow_strafe_02.jpg",
+    "slow_strafe_03.jpg",
+    "static_target_01.jpg",
+    "static_target_02.jpg",
+    "static_target_03.jpg"
+  ],
+  "review_csv": "D:\\AI_Security\\ai-game-security\\runs\\pilot_20261114_1920x1080\\hard_examples\\review.csv"
+}

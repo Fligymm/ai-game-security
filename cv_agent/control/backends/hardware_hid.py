@@ -18,12 +18,21 @@ class HardwareHIDBackend(BaseMouseBackend):
         self.custom_writer = custom_writer
         self.mock_packets: list[bytes] = []
 
+    @property
+    def supports_real_output(self) -> bool:
+        return not self.mock and self.custom_writer is not None
+
     def send_relative_move(self, dx: int, dy: int) -> None:
         packet = self.format_packet(dx, dy)
-        if self.custom_writer is not None:
-            self.custom_writer(packet)
-        else:
+        if self.mock:
             self.mock_packets.append(packet)
+            return
+        if self.custom_writer is None:
+            raise RuntimeError(
+                "HardwareHIDBackend is in real mode but no custom_writer was injected; "
+                "use mock=True or an explicit writer"
+            )
+        self.custom_writer(packet)
 
     @classmethod
     def format_packet(cls, dx: int, dy: int) -> bytes:

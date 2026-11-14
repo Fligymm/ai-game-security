@@ -19,13 +19,22 @@ class Win32APIBackend(BaseMouseBackend):
         self.custom_handler = custom_handler
         self.moves: list[tuple[int, int]] = []
 
+    @property
+    def supports_real_output(self) -> bool:
+        return not self.dry_run and self.custom_handler is not None
+
     def send_relative_move(self, dx: int, dy: int) -> None:
         dx = max(-32768, min(32767, int(dx)))
         dy = max(-32768, min(32767, int(dy)))
-        if self.custom_handler is not None:
-            self.custom_handler(dx, dy)
-        else:
+        if self.dry_run:
             self.moves.append((dx, dy))
+            return
+        if self.custom_handler is None:
+            raise RuntimeError(
+                "Win32APIBackend is in real mode but no custom_handler was injected; "
+                "use dry_run=True or the run_real.py hook"
+            )
+        self.custom_handler(dx, dy)
 
     def reset(self) -> None:
         self.moves.clear()

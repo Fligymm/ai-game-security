@@ -20,6 +20,12 @@ class AimController:
         self._fractional_x = 0.0
         self._fractional_y = 0.0
 
+    @property
+    def can_apply(self) -> bool:
+        """Whether the injected backend can send real input events."""
+
+        return bool(getattr(self.backend, "supports_real_output", False))
+
     def reset(self) -> None:
         self._fractional_x = 0.0
         self._fractional_y = 0.0

@@ -9,6 +9,7 @@ full-screen coordinate system.
 from __future__ import annotations
 
 import sys
+import time
 from dataclasses import dataclass
 from typing import Any
 
@@ -82,6 +83,7 @@ class ScreenGrabber:
         self.fallback_to_mss = bool(fallback_to_mss)
 
         self.backend: str | None = None
+        self.last_frame_timestamp_ns: int | None = None
         self.offset_x: int = 0
         self.offset_y: int = 0
         self.screen_left: int = 0
@@ -187,6 +189,7 @@ class ScreenGrabber:
         frame = self._ensure_bgr(frame)
         if frame.shape[:2] != (self.roi_height, self.roi_width):
             frame = cv2.resize(frame, (self.roi_width, self.roi_height), interpolation=cv2.INTER_LINEAR)
+        self.last_frame_timestamp_ns = time.perf_counter_ns()
         return frame
 
     def get_latest_frame(self) -> np.ndarray:

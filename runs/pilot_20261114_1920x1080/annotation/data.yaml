@@ -1,0 +1,8 @@
+path: D:/AI_Security/ai-game-security/runs/pilot_20261114_1920x1080/annotation
+train: images
+val: images
+
+nc: 2
+names:
+  0: enemy_head
+  1: enemy_body

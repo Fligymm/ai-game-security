@@ -9,6 +9,7 @@ from __future__ import annotations
 import ctypes
 import sys
 import threading
+import time
 from dataclasses import dataclass
 from ctypes import wintypes
 
@@ -33,6 +34,10 @@ class GlobalHotkeyKillSwitch:
 
     ESC toggles the paused state for mouse output.
     F12 requests a hard stop.
+
+    If either registration fails (for example F12 is already owned by an
+    overlay), the listener falls back to polling ``GetAsyncKeyState``.  This
+    keeps the same physical keys and avoids a silent loss of the kill switch.
     """
 
     def __init__(self, bindings: HotkeyBindings | None = None) -> None:
@@ -40,11 +45,23 @@ class GlobalHotkeyKillSwitch:
         self.paused = False
         self.stopped = False
         self.available = sys.platform == "win32"
+        self.mode = "unstarted"
 
         self._thread: threading.Thread | None = None
         self._thread_id: int | None = None
         self._ready = threading.Event()
         self._shutdown = threading.Event()
+
+    @property
+    def is_running(self) -> bool:
+        """Whether the hotkey listener is currently alive and registered."""
+
+        return bool(
+            self.available
+            and self._thread is not None
+            and self._thread.is_alive()
+            and not self.stopped
+        )
 
     def start(self) -> GlobalHotkeyKillSwitch:
         """Start the listener thread if global hotkeys are available."""
@@ -88,16 +105,21 @@ class GlobalHotkeyKillSwitch:
         self._thread_id = ctypes.windll.kernel32.GetCurrentThreadId()
         user32 = ctypes.windll.user32
 
-        if not user32.RegisterHotKey(None, 1, MOD_NOREPEAT, self.bindings.pause_vk):
-            self.available = False
-            self._ready.set()
+        pause_ok = bool(
+            user32.RegisterHotKey(None, 1, MOD_NOREPEAT, self.bindings.pause_vk)
+        )
+        if not pause_ok:
+            self._poll_loop()
             return
-        if not user32.RegisterHotKey(None, 2, MOD_NOREPEAT, self.bindings.stop_vk):
+        stop_ok = bool(
+            user32.RegisterHotKey(None, 2, MOD_NOREPEAT, self.bindings.stop_vk)
+        )
+        if not stop_ok:
             user32.UnregisterHotKey(None, 1)
-            self.available = False
-            self._ready.set()
+            self._poll_loop()
             return
 
+        self.mode = "hotkey"
         self._ready.set()
         msg = wintypes.MSG()
         try:
@@ -115,3 +137,29 @@ class GlobalHotkeyKillSwitch:
         finally:
             user32.UnregisterHotKey(None, 1)
             user32.UnregisterHotKey(None, 2)
+
+    def _poll_loop(self) -> None:
+        """Fallback when RegisterHotKey is unavailable or F12 is already owned."""
+
+        self.mode = "polling"
+        print(
+            "[WARNING] global hotkey registration failed; "
+            "using GetAsyncKeyState polling for ESC/F12"
+        )
+        self._ready.set()
+        previous_pause = self._key_down(self.bindings.pause_vk)
+        previous_stop = self._key_down(self.bindings.stop_vk)
+        while not self._shutdown.is_set():
+            pause_down = self._key_down(self.bindings.pause_vk)
+            stop_down = self._key_down(self.bindings.stop_vk)
+            if pause_down and not previous_pause:
+                self.toggle_pause()
+            if stop_down and not previous_stop:
+                self.request_stop()
+            previous_pause = pause_down
+            previous_stop = stop_down
+            time.sleep(0.01)
+
+    @staticmethod
+    def _key_down(vk: int) -> bool:
+        return bool(ctypes.windll.user32.GetAsyncKeyState(vk) & 0x8000)

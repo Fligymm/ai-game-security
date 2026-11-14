@@ -1,0 +1,217 @@
+{
+  "ok": true,
+  "model": "runs\\detect\\cs2_detection_v2\\weights\\best.onnx",
+  "annotation_root": "D:\\AI_Security\\ai-game-security\\runs\\pilot_20261114_1920x1080\\annotation",
+  "imgsz": 640,
+  "val_conf": 0.001,
+  "deployment_conf": 0.35,
+  "iou_threshold": 0.5,
+  "overall_val": {
+    "results": {
+      "metrics/precision(B)": 0.8917102171858449,
+      "metrics/recall(B)": 0.7621376385895553,
+      "metrics/mAP50(B)": 0.7848901380915599,
+      "metrics/mAP50-95(B)": 0.3138318666217753,
+      "fitness": 0.3138318666217753
+    },
+    "per_class": {
+      "enemy_head": {
+        "precision": 0.8279140304418592,
+        "recall": 0.75177304964539,
+        "ap50": 0.7450660604246628,
+        "ap50_95": 0.22860692604268268
+      },
+      "enemy_body": {
+        "precision": 0.9555064039298307,
+        "recall": 0.7725022275337207,
+        "ap50": 0.824714215758457,
+        "ap50_95": 0.39905680720086806
+      }
+    }
+  },
+  "per_scene_val": {
+    "fast_strafe": {
+      "results": {
+        "metrics/precision(B)": 0.9442210129429702,
+        "metrics/recall(B)": 0.9542597495441906,
+        "metrics/mAP50(B)": 0.9658785529715763,
+        "metrics/mAP50-95(B)": 0.4461120745376945,
+        "fitness": 0.4461120745376945
+      },
+      "per_class": {
+        "enemy_head": {
+          "precision": 0.8884420258859405,
+          "recall": 0.9523809523809523,
+          "ap50": 0.9367571059431525,
+          "ap50_95": 0.28384303673539885
+        },
+        "enemy_body": {
+          "precision": 1.0,
+          "recall": 0.9561385467074288,
+          "ap50": 0.995,
+          "ap50_95": 0.6083811123399901
+        }
+      }
+    },
+    "slow_strafe": {
+      "results": {
+        "metrics/precision(B)": 0.9164450730531987,
+        "metrics/recall(B)": 0.695325791699424,
+        "metrics/mAP50(B)": 0.7333883861580551,
+        "metrics/mAP50-95(B)": 0.27924755080587393,
+        "fitness": 0.27924755080587393
+      },
+      "per_class": {
+        "enemy_head": {
+          "precision": 0.8328901461063973,
+          "recall": 0.6709803065802644,
+          "ap50": 0.6780521091202318,
+          "ap50_95": 0.18594683573285925
+        },
+        "enemy_body": {
+          "precision": 1.0,
+          "recall": 0.7196712768185836,
+          "ap50": 0.7887246631958784,
+          "ap50_95": 0.3725482658788885
+        }
+      }
+    },
+    "static_target": {
+      "results": {
+        "metrics/precision(B)": 0.8323327267019978,
+        "metrics/recall(B)": 0.6595744680851063,
+        "metrics/mAP50(B)": 0.6820898114953503,
+        "metrics/mAP50-95(B)": 0.2605558901041373,
+        "fitness": 0.2605558901041373
+      },
+      "per_class": {
+        "enemy_head": {
+          "precision": 0.7944335587374571,
+          "recall": 0.6595744680851063,
+          "ap50": 0.6631204359151466,
+          "ap50_95": 0.23851820138415847
+        },
+        "enemy_body": {
+          "precision": 0.8702318946665383,
+          "recall": 0.6595744680851063,
+          "ap50": 0.701059187075554,
+          "ap50_95": 0.28259357882411623
+        }
+      }
+    }
+  },
+  "deployment": {
+    "all": {
+      "overall": {
+        "images": 90,
+        "gt": 280,
+        "pred": 221,
+        "tp": 201,
+        "fp": 20,
+        "fn": 79,
+        "precision": 0.9095022624434389,
+        "recall": 0.7178571428571429,
+        "f1": 0.8023952095808383
+      },
+      "per_scene": {
+        "static_target": {
+          "images": 30,
+          "gt": 94,
+          "pred": 67,
+          "tp": 57,
+          "fp": 10,
+          "fn": 37,
+          "precision": 0.8507462686567164,
+          "recall": 0.6063829787234043,
+          "f1": 0.7080745341614907
+        },
+        "slow_strafe": {
+          "images": 30,
+          "gt": 102,
+          "pred": 70,
+          "tp": 64,
+          "fp": 6,
+          "fn": 38,
+          "precision": 0.9142857142857143,
+          "recall": 0.6274509803921569,
+          "f1": 0.7441860465116279
+        },
+        "fast_strafe": {
+          "images": 30,
+          "gt": 84,
+          "pred": 84,
+          "tp": 80,
+          "fp": 4,
+          "fn": 4,
+          "precision": 0.9523809523809523,
+          "recall": 0.9523809523809523,
+          "f1": 0.9523809523809523
+        }
+      },
+      "empty_frames": {
+        "images": 6,
+        "with_prediction": 0,
+        "boxes": 0
+      }
+    },
+    "head_only": {
+      "overall": {
+        "images": 90,
+        "gt": 141,
+        "pred": 114,
+        "tp": 98,
+        "fp": 16,
+        "fn": 43,
+        "precision": 0.8596491228070176,
+        "recall": 0.6950354609929078,
+        "f1": 0.7686274509803922
+      },
+      "per_scene": {
+        "static_target": {
+          "images": 30,
+          "gt": 47,
+          "pred": 33,
+          "tp": 27,
+          "fp": 6,
+          "fn": 20,
+          "precision": 0.8181818181818182,
+          "recall": 0.574468085106383,
+          "f1": 0.675
+        },
+        "slow_strafe": {
+          "images": 30,
+          "gt": 52,
+          "pred": 37,
+          "tp": 31,
+          "fp": 6,
+          "fn": 21,
+          "precision": 0.8378378378378378,
+          "recall": 0.5961538461538461,
+          "f1": 0.6966292134831461
+        },
+        "fast_strafe": {
+          "images": 30,
+          "gt": 42,
+          "pred": 44,
+          "tp": 40,
+          "fp": 4,
+          "fn": 2,
+          "precision": 0.9090909090909091,
+          "recall": 0.9523809523809523,
+          "f1": 0.9302325581395349
+        }
+      },
+      "empty_frames": {
+        "images": 6,
+        "with_prediction": 0,
+        "boxes": 0
+      }
+    }
+  },
+  "counts": {
+    "images": 90,
+    "empty_labels": 6
+  },
+  "errors": [],
+  "warnings": []
+}
