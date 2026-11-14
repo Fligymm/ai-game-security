@@ -1,0 +1,80 @@
+{
+  "schema_version": "cs2.detector.manifest.v1",
+  "model_name": "cs2_multitarget_ft_v1",
+  "model_card": "runs/detect/cs2_multitarget_ft_v1/MODEL_CARD.md",
+  "status": "accepted_final",
+  "accepted_date": "2026-11-14",
+  "accepted_by": "project owner",
+  "decision": "finalize; no additional data collection",
+  "dataset_version": "d58135a0d6e3702d",
+  "architecture": "YOLOv8n",
+  "task": "detect",
+  "classes": {
+    "0": "enemy_head",
+    "1": "enemy_body"
+  },
+  "input": {
+    "geometry": "320x320 ROI",
+    "imgsz": 640,
+    "deployment_conf": 0.35,
+    "deployment_iou": 0.5
+  },
+  "weights": {
+    "pt": {
+      "path": "runs/detect/cs2_multitarget_ft_v1/weights/best.pt",
+      "sha256": "7f82febb6907b2fdb076741fb63aa916554abe49f9492a727e0a14aaef2318ee"
+    },
+    "onnx": {
+      "path": "runs/detect/cs2_multitarget_ft_v1/weights/best.onnx",
+      "sha256": "a142988bb08c2651d5e221580023147f07f0e63d836ec7a10b78fc07526abcab"
+    }
+  },
+  "training": {
+    "initial_weights": "runs/detect/cs2_detection_v2/weights/best.pt",
+    "config": "configs/finetune_multitarget_v1.yaml",
+    "config_sha256": "62be85a074c5d5aed01434f983892b6852ba5c27897aca8b26366a59f2a3328a",
+    "args_yaml": "runs/detect/cs2_multitarget_ft_v1/args.yaml",
+    "args_yaml_sha256": "9eff9da68eabd526b40ccd1582d2f9944b42d639aaa9b9bf23ebb99b67095bd3",
+    "results_csv": "runs/detect/cs2_multitarget_ft_v1/results.csv",
+    "results_csv_sha256": "0eef5ffc8592ba705f69ee8c69cee57e751f730558e09f245ce526ecc505a98a",
+    "split_manifest": "runs/pilot_20261115_multitarget/split_v1/split_manifest.json",
+    "split_manifest_sha256": "4cae9339e5ec4e3681e7df14b10fa562e7363587379e354a333bd60ff059babe",
+    "best_epoch": 26,
+    "epochs_completed": 41,
+    "seed": 42
+  },
+  "evaluation": {
+    "test_set": "runs/pilot_20261114_1920x1080/annotation",
+    "test_frames": 90,
+    "pt_report": "runs/eval/pilot_v1_ft_pt/eval_report.json",
+    "pt_report_sha256": "39b14d62dfe8463bb488f67387893cdf320f337372884e1ee5b18e2c0c7484d6",
+    "onnx_report": "runs/eval/pilot_v1_ft_onnx/eval_report.json",
+    "onnx_report_sha256": "fd096542e90bfd74eeb185f0be55a71cd088e0de86ed55bac678273e3a735e6a",
+    "onnx": {
+      "mAP50": 0.9185,
+      "mAP50_95": 0.4435,
+      "head_mAP50": 0.9225,
+      "head_recall_at_0_35": 0.7801,
+      "empty_false_positive_frames": 0,
+      "empty_frames": 6
+    },
+    "baseline_onnx": {
+      "mAP50": 0.7849,
+      "head_mAP50": 0.7451,
+      "head_recall_at_0_35": 0.6950
+    }
+  },
+  "replay": {
+    "report": "runs/eval/replay_v1_vs_v0/REPLAY_REVIEW.md",
+    "json": "runs/eval/replay_v1_vs_v0/replay_comparison.json",
+    "json_sha256": "1f395d33a1a0150ff70ddba6bb25d9802678f606c4983bdfb3c15ea8d51bf12e",
+    "frames_sampled": 8863,
+    "reviewed": true,
+    "reviewer_conclusion": "accepted; no additional data collection"
+  },
+  "deployment": {
+    "default_entrypoint": "run_real.py",
+    "default_weights": "runs/detect/cs2_multitarget_ft_v1/weights/best.onnx",
+    "rollback": "runs/detect/cs2_detection_v2/weights/best.onnx"
+  }
+}
