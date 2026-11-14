@@ -1,7 +1,8 @@
 # Research disclosure whitelist
 
-Status: **owner-authorized whitelist; no external upload performed**  
-Date: 2026-11-14
+Status: **owner-authorized whitelist; published to `release/research-whitelist`**  
+Date: 2026-11-14  
+Remote commit: `bdca2e5`; `main` was not pushed.
 
 This is a research/defense disclosure, not a turnkey tool release. The whitelist
 deliberately excludes code, real-time aim execution, model weights, raw data,
@@ -68,15 +69,14 @@ yolov8n.pt
 
 ## Publication gate
 
-Do not upload this whitelist until:
+Published as a separate orphan branch after:
 
-1. the owner confirms MIT with `Copyright (c) 2026 Fligymm` as the intended
-   code/documentation license;
-2. the sanitized export is checked for absolute paths and secrets (build-time
+1. MIT with `Copyright (c) 2026 Fligymm` was selected for code/documentation;
+2. the sanitized export was checked for absolute paths and secrets (build-time
    scan recorded in [`RELEASE_BUILD_RECORD.md`](RELEASE_BUILD_RECORD.md));
-3. a human reviews the final file list;
-4. the owner explicitly selects the destination and release visibility.
+3. the file list was reviewed;
+4. the destination/visibility was selected.
 
-If a destination is selected later, publish only the whitelist as a separate
-research branch/package; never push the full working tree, because it contains
-tracked `runs/` images, logs, and local manifests.
+Future updates must publish only this whitelist on the release branch/package;
+never push the full working tree, because it contains tracked `runs/` images,
+logs, and local manifests.

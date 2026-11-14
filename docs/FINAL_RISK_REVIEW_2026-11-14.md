@@ -131,8 +131,9 @@ weights and raw data remain outside the whitelist.
 Model freeze remains valid. The `log_only` stop path is fixed and covered by
 regression tests; the owner reports physical ESC/F12 validation passed. Real
 control may be used only through the explicit `run_real.py` path with the kill
-switch active. The owner authorized a whitelist-only research disclosure, but
-no external upload has been performed and model weights/raw data remain
-excluded. The project is academic/research-only; see
+switch active. The owner authorized a whitelist-only research disclosure; it was
+published to `release/research-whitelist` at commit `bdca2e5`, without touching
+`main`, and model weights/raw data remain excluded. The project is
+academic/research-only; see
 [`ACADEMIC_USE_NOTICE.md`](ACADEMIC_USE_NOTICE.md) and
 [`LEGAL_AND_ETHICS.md`](LEGAL_AND_ETHICS.md).

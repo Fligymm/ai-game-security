@@ -1,7 +1,7 @@
 # Release notes — 2026-11-14
 
 This is the first owner-authorized research disclosure for
-`cs2_multitarget_ft_v1`.
+`cs2_multitarget_ft_v1`, published on `release/research-whitelist`.
 
 ## Package scope
 

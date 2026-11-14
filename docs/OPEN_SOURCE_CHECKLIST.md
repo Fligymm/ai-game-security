@@ -1,7 +1,8 @@
 # Open-source release checklist
 
-Status: **owner-authorized research whitelist; not uploaded**  
-Target: `cs2_multitarget_ft_v1` and the perception/data tooling.
+Status: **owner-authorized research whitelist; published to `release/research-whitelist`**  
+Target: `cs2_multitarget_ft_v1` and the perception/data tooling.  
+Remote commit: `bdca2e5`; `main` was not pushed.
 
 The approved release shape is the documentation + aggregate-evidence whitelist in
 [`RELEASE_WHITELIST.md`](RELEASE_WHITELIST.md). It excludes all code, weights,
