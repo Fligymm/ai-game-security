@@ -372,6 +372,7 @@
 | M4-09 | P0-C 扩样请求 | Done | 新增 H-02/H-03/B-02/B-03；4 个新 session `check_fps_pilot --verify-hash` 均通过 timebase | 新 session 人工 QC | 2026-11-16 |
 | M4-10 | 3H/3B old-model P0-C 特征 | Descriptive only | `docs/research/P0C_3X3_FEATURES.md`、`runs/eval/anticheat_p0c/pilot_old_tiled_v2`；head/body 比例恢复，H/B 覆盖范围重叠 | 新 session QC | 2026-11-16 |
 | M4-11 | 3H/3B 简单 baseline | Negative pilot | `docs/research/P0C_BASELINE.md`、`runs/eval/anticheat_p0c/baseline_v2`；Logistic 4/6，RF 2/6，不能作为分类结论；body 漏检 accepted limitation | 扩样后再 baseline；不调参 | 2026-11-16 |
+| M4-12 | 第二轮扩样 3H/3B -> 5H/5B | Pending owner capture | `docs/ANTICHEAT_P0C_EXPANSION_ROUND2.md`、`scripts/capture_p0b_expansion.ps1`；H-04/H-05/B-04/B-05 | 采集后校验并重跑 old C/baseline | 2026-11-16 |
 
 ### 9.2 每周节奏
 
@@ -447,6 +448,7 @@
 - 2026-11-16：所有者人工 QC 通过：H/B 目标覆盖好、跟踪时间符合要求；碎片化归因于目标存在时间短。请求新增 H-02/H-03/B-02/B-03，扩到每类 3 个独立 session。
 - 2026-11-16：4 个新 session 采集并通过 timebase；old-model tiled C 与 3H/3B P0-C 特征完成（`P0C_3X3_FEATURES.md`）。
 - 2026-11-16：3H/3B leave-one-session-out baseline（`P0C_BASELINE.md`）：Logistic 4/6、RF 2/6、Dummy 3/6；当前特征不可分类。body 少量漏检因样本少/姿态变化，记录为 accepted limitation。
+- 2026-11-16：第二轮扩样脚本 `scripts/capture_p0b_expansion.ps1` 完成（H-04/H-05/B-04/B-05，目标 5H/5B）；不训练分类器，等待采集。
 
 ---
 
