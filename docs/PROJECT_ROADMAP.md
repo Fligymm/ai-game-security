@@ -367,7 +367,8 @@
 | M4-04 | R2 抓屏与实验流程升级 | H/B pilot + tiled C dry-run passed | `p0b_human_20261116_152512`、`p0b_game_bot_20261116_152746` 通过 timebase；3×3 tiling 后 H 759/1604、B 1124/1641 帧有检测；输出关联 source/video/model SHA | P0-C 特征分析/扩大采集 | 2026-11-16 |
 | M4-05 | P0-C tiled 特征 pilot | QC automation done; human review pending | `runs/eval/anticheat_p0c/pilot_tiled_v1`、`docs/research/P0C_PILOT_FEATURES.md`；head 检测仅 3/7，选中 run 中位数 2 帧；contact sheets 已生成 | 人工复核 contact sheets；暂不扩样 | 2026-11-16 |
 | M4-06 | P0-C old/new 模型 POV 对比 | Done（descriptive） | `docs/research/P0C_MODEL_COMPARISON.md`；同一 H/B tiled 配置下 old head 183/185，new head 3/7 | 逐框对照 | 2026-11-16 |
-| M4-07 | 默认模型回退与旧数据审计 | Done | `run_real.py` 默认回退 old；`docs/research/P0B_MODEL_DEFAULT_DECISION.md`；旧 v2 数据 135/135、33/33 平衡且无缺标签 | 决定 P0-C 统一模型/后续 POV 数据策略 | 2026-11-16 |
+| M4-07 | 默认模型回退与旧数据审计 | Done | `run_real.py` 默认回退 old；`docs/research/P0B_MODEL_DEFAULT_DECISION.md`；旧 v2 数据 135/135、33/33 平衡且无缺标签 | 旧模型 P0-C 复检 | 2026-11-16 |
+| M4-08 | old 模型 P0-C 特征/QC | Descriptive only | `docs/research/P0C_OLD_PILOT_FEATURES.md`；old head 132/129，offset 80.7/106.8，track episode 93/89；contact sheets 已生成 | 人工 QC 后修跟踪/再决定扩样 | 2026-11-16 |
 
 ### 9.2 每周节奏
 
@@ -439,6 +440,7 @@
 - 2026-11-16：P0-C 自动 QC 与 contact sheets：head 仅 3/7 个检测，selected run 中位数 2 帧；人工视觉复核待做，暂不扩数据集。
 - 2026-11-16：old/new 同 H/B POV 对比：old head 183/185，new head 3/7；new 在原 90 帧 320 ROI 测试仍更优。记录为 POV 域/尺度风险。
 - 2026-11-16：项目所有者决定默认回退 old：`run_real.py` 与 C 离线工具默认 `cs2_detection_v2/weights/best.onnx`；new 保留候选。旧 v2 数据审计未发现类别失衡或缺标签（train 135/135，val 33/33）。
+- 2026-11-16：old 模型 P0-C 复检完成：head 132/129，offset 80.7/106.8，track episode 93/89；contact sheets 已生成，等待人工 QC；暂不扩样/不训练。
 
 ---
 
