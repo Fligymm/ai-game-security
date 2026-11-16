@@ -137,7 +137,23 @@ runs/eval/anticheat_p0c/pilot_old_tiled_v2/
 
 ---
 
-## 6. 下一步
+## 6. 简单 baseline
+
+已在 3H/3B 上做 leave-one-session-out baseline：
+
+```text
+Dummy majority        accuracy 0.500
+LogisticRegression    accuracy 0.667, AUC 0.556
+RandomForest depth=2  accuracy 0.333, AUC 0.222
+```
+
+**当前特征不支持可靠分类**；详见
+[`P0C_BASELINE.md`](P0C_BASELINE.md)。
+
+body 少量漏检已记录为 accepted limitation：训练样本少、body 动作变化后
+失去传统站立特征；样例极少，不作为本轮阻断，后续扩样再考虑补充。
+
+## 7. 下一步
 
 1. 人工复核新增 4 个 session 的 contact sheets；
 2. 复核通过后，做 leave-one-session-out 的描述性稳定性检查；
