@@ -135,7 +135,30 @@ Agent 无法读取图像，因此这一步不能由我代替。
 
 ---
 
-## 5. 下一步
+## 5. 人工 QC 流程
+
+完整流程、逐帧字段、门限和决策矩阵见：
+
+- [`ANTICHEAT_P0C_QC_PROCEDURE.md`](../ANTICHEAT_P0C_QC_PROCEDURE.md)
+- [`P0C_QC_TEMPLATE.csv`](../P0C_QC_TEMPLATE.csv)
+
+## 6. 人工 QC 结果（所有者，2026-11-16）
+
+**通过。**
+
+```text
+H 目标覆盖好，跟踪时间符合要求
+B 目标覆盖好，跟踪时间符合要求
+```
+
+碎片化的原因被确认主要是**目标存在时间短**，不是 tracker 失效。
+因此当前不需要先修 tracker；下一步是补齐每类 3 个独立 session，
+再做 H/B 描述统计。
+
+扩展请求见：
+[`ANTICHEAT_P0C_EXPANSION_REQUEST.md`](../ANTICHEAT_P0C_EXPANSION_REQUEST.md)
+
+## 7. 下一步
 
 1. 人工查看 old contact sheets；
 2. 若 selected box 大多正确：

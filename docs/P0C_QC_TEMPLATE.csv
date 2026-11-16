@@ -1,0 +1,1 @@
+session_id,agent_type,frame_index,capture_time_s,target_present,visible_class,det_box_correct,selected_box_correct,head_missed,body_false_positive,track_continuity,occlusion,ui_overlay,decision,notes,reviewer,review_date
