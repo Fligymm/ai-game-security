@@ -375,7 +375,8 @@
 | M4-12 | 第二轮扩样 3H/3B -> 5H/5B | Done | `docs/ANTICHEAT_P0C_EXPANSION_ROUND2.md`；4 个新 session 通过；B-04 由 `214446` 补录 | 5H/5B baseline | 2026-11-16 |
 | M4-13 | 5H/5B P0-C 特征与 baseline | Negative pilot | `docs/research/P0C_5X5_FEATURES.md`；Logistic/RF 6/10，AUC 0.68/0.72；仍不可靠 | 不调参；转 Feature v2 | 2026-11-16 |
 | M4-14 | P0-C Feature v2 草案/首轮 | Implemented; conditional signal | `docs/research/P0C_FEATURE_V2_DRAFT.md`、`P0C_FEATURE_V2_RESULTS.md`；F2 tracking RF AUC 0.92，其他家族弱；10 sessions 仍小 | 固定 F2 后扩到 10H/10B 验证 | 2026-11-16 |
-| M4-15 | 第三轮扩样 5H/5B -> 10H/10B | Pending owner capture | `docs/ANTICHEAT_P0C_EXPANSION_ROUND3.md`；H-06..H-10 / B-06..B-10；固定 F2，不重新选特征 | 采集后校验并跑 old C/10x10 baseline | 2026-11-16 |
+| M4-15 | 第三轮扩样 5H/5B -> 10H/10B | Done | 实际 11H/10B；全部 timebase PASS；old C tiled 完成 | 固定 F2 验证 | 2026-11-16 |
+| M4-16 | 固定 F2 10H/10B 验证 | Pilot signal | `docs/research/P0C_FEATURE_V2_10X10.md`；Logistic 0.857 / AUC 0.918，错误跨 3 个 session；仍单场景单特征族 | 跨场景/跨 operator 验证 | 2026-11-16 |
 
 ### 9.2 每周节奏
 
@@ -457,6 +458,7 @@
 - 2026-11-16：P0-C Feature v2 草案完成：F1 目标获取、F2 跟踪、F3 修正、F4 切换、F5 可见性；先用 5H/5B 做 go/no-go，不扩数据、不训练。
 - 2026-11-16：Feature v2 首轮 5H/5B 完成：F2 tracking 单独 RF AUC 0.92，其他家族弱；条件性 signal，仍需 10H/10B 验证；不训练分类器。
 - 2026-11-16：新增第三轮扩样请求 `ANTICHEAT_P0C_EXPANSION_ROUND3.md`：H-06..H-10 / B-06..B-10，固定 F2 特征，不重新选特征。
+- 2026-11-16：第三轮实际完成 11H/10B；固定 F2 LOO Logistic 0.857 / AUC 0.918，错误跨 3 个 session；仍单场景/单特征族，需跨场景验证。
 
 ---
 
