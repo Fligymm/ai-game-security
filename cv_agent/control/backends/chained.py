@@ -40,6 +40,27 @@ class ChainedBackend(BaseMouseBackend):
                     raise
                 # Silently continue; one backend's failure should not block others
 
+    def log_relative_move(self, dx: int, dy: int) -> None:
+        """Record a planned move without triggering any real output.
+
+        Only logging/recording children are called. Backends that declare real
+        output are skipped even if they inherit the base implementation.
+        """
+
+        for backend in self._backends:
+            if getattr(backend, "supports_real_output", False):
+                continue
+            log_move = getattr(backend, "log_relative_move", None)
+            if log_move is None:
+                continue
+            try:
+                log_move(int(dx), int(dy))
+            except Exception as e:
+                if self._strict:
+                    raise
+                # Match send_relative_move: one logger failing must not break
+                # the other logging children.
+
     def reset(self) -> None:
         """Reset all backends."""
         for backend in self._backends:

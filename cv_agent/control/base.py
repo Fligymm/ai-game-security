@@ -24,6 +24,16 @@ class BaseMouseBackend(ABC):
     def send_relative_move(self, dx: int, dy: int) -> None:
         raise NotImplementedError
 
+    def log_relative_move(self, dx: int, dy: int) -> None:
+        """Record a planned move without emitting real input.
+
+        Real-output backends inherit this no-op. CSV/logging backends override
+        it so a paused or stopped loop can still record the trajectory without
+        ever touching the real input device.
+        """
+
+        pass
+
     @abstractmethod
     def reset(self) -> None:
         raise NotImplementedError

@@ -38,33 +38,43 @@ class AimController:
         self.backend.set_context(values)
 
     def log_only(self, dx: float, dy: float, *, max_step: float = 24.0, deadzone: float = 0.5) -> dict[str, float]:
-        """Log a correction only to CSV backend without sending real control.
-        
-        This method calculates the final movement vector but only records it to CSV.
-        Useful for dry-run mode where control output is disabled.
-        
+        """Log a correction without sending real control.
+
+        The movement vector is still accumulated and written to logging
+        backends (CSV). Real-output backends must never be called here: this is
+        the paused/stopped/dry-run path, so a real input event would violate the
+        kill-switch contract even though ``applied_mouse`` stays False.
+
         Args:
             dx: Desired X offset (pixels).
             dy: Desired Y offset (pixels).
             max_step: Maximum pixels per frame.
             deadzone: Minimum movement threshold.
-        
+
         Returns:
             Dictionary with sent_dx, sent_dy, remaining_error.
         """
         distance = math.hypot(float(dx), float(dy))
         if distance <= float(deadzone):
             return {"sent_dx": 0.0, "sent_dy": 0.0, "remaining_error": distance}
-        
+
         scale = min(1.0, float(max_step) / max(distance, 1e-9))
         self._fractional_x += float(dx) * scale
         self._fractional_y += float(dy) * scale
         sx, sy = int(round(self._fractional_x)), int(round(self._fractional_y))
         self._fractional_x -= sx
         self._fractional_y -= sy
-        
-        # Log to backend (typically CSV logger only in dry-run mode)
-        self.backend.send_relative_move(sx, sy)
+
+        # Prefer the backend's logging-only path. A real backend inherits the
+        # base no-op, and ChainedBackend skips real-output children there.
+        log_move = getattr(self.backend, "log_relative_move", None)
+        if log_move is not None:
+            log_move(sx, sy)
+        elif not self.can_apply:
+            # Legacy/duck-typed logging backend with no explicit log path.
+            self.backend.send_relative_move(sx, sy)
+        # If a real-capable backend has no logging-only path, do not call
+        # send_relative_move: losing one CSV row is safer than moving the mouse.
         return {"sent_dx": float(sx), "sent_dy": float(sy), "remaining_error": distance}
 
     def apply_correction(self, dx: float, dy: float, *, max_step: float = 24.0, deadzone: float = 0.5) -> dict[str, float]:

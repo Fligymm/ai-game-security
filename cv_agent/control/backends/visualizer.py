@@ -26,6 +26,11 @@ class CanvasVisualizerBackend(BaseMouseBackend):
         cv2.imshow(self.window_name, self.canvas)
         cv2.waitKey(1)
 
+    def log_relative_move(self, dx: int, dy: int) -> None:
+        """Render a planned move; this backend never emits real input."""
+
+        self.send_relative_move(dx, dy)
+
     def reset(self) -> None:
         self.canvas.fill(24)
         self.position[:] = (self.width // 2, self.height // 2)

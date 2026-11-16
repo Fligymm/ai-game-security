@@ -9,7 +9,7 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
-from cv_agent.control import AimController, BaseMouseBackend, CSVLoggerBackend, Win32APIBackend
+from cv_agent.control import AimController, BaseMouseBackend, ChainedBackend, CSVLoggerBackend, Win32APIBackend
 from cv_agent.orchestrator import AimPipeline
 from vision.detection.detection import Detection
 from vision.stream.realtime_loop import RealtimeAimLoop, RealtimeLoopConfig
@@ -188,6 +188,78 @@ def test_active_request_with_real_capable_backend_reports_applied() -> None:
         assert backend.moves
     finally:
         loop.pipeline.controller.close()
+
+
+def test_log_only_never_calls_real_backend_in_chain(tmp_path) -> None:
+    real_moves: list[tuple[int, int]] = []
+    csv_path = tmp_path / "log_only.csv"
+    chain = ChainedBackend(
+        [
+            CSVLoggerBackend(csv_path),
+            Win32APIBackend(
+                dry_run=False,
+                custom_handler=lambda dx, dy: real_moves.append((dx, dy)),
+            ),
+        ]
+    )
+    controller = AimController(chain)
+    try:
+        controller.log_only(100.0, 0.0)
+    finally:
+        controller.close()
+
+    assert real_moves == []
+    rows = list(csv.reader(csv_path.open(encoding="utf-8")))
+    assert len(rows) == 2
+    assert rows[1][1:3] == ["24", "0"]
+
+
+def test_stopped_loop_logs_without_real_output(tmp_path) -> None:
+    real_moves: list[tuple[int, int]] = []
+    csv_path = tmp_path / "stopped.csv"
+    chain = ChainedBackend(
+        [
+            CSVLoggerBackend(csv_path),
+            Win32APIBackend(
+                dry_run=False,
+                custom_handler=lambda dx, dy: real_moves.append((dx, dy)),
+            ),
+        ]
+    )
+    loop = _loop(chain, apply_mouse=True)
+    loop.kill_switch.stopped = True  # type: ignore[union-attr]
+    try:
+        result = loop.step(_frame())
+    finally:
+        loop.pipeline.controller.close()
+
+    assert result.applied_mouse is False
+    assert real_moves == []
+    assert len(list(csv.reader(csv_path.open(encoding="utf-8")))) == 2
+
+
+def test_paused_loop_logs_without_real_output(tmp_path) -> None:
+    real_moves: list[tuple[int, int]] = []
+    csv_path = tmp_path / "paused.csv"
+    chain = ChainedBackend(
+        [
+            CSVLoggerBackend(csv_path),
+            Win32APIBackend(
+                dry_run=False,
+                custom_handler=lambda dx, dy: real_moves.append((dx, dy)),
+            ),
+        ]
+    )
+    loop = _loop(chain, apply_mouse=True)
+    loop.kill_switch.paused = True  # type: ignore[union-attr]
+    try:
+        result = loop.step(_frame())
+    finally:
+        loop.pipeline.controller.close()
+
+    assert result.applied_mouse is False
+    assert real_moves == []
+    assert len(list(csv.reader(csv_path.open(encoding="utf-8")))) == 2
 
 
 def test_enter_fails_closed_when_kill_switch_is_unavailable(tmp_path) -> None:

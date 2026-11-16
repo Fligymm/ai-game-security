@@ -65,6 +65,10 @@
 - 多游戏泛化；先做单游戏/单场景的闭环。
 - 实时闭环瞄准性能作为核心指标；改为“采集/感知/对齐”指标。
 
+> **2026-11-15 范围提案：** `docs/ANTICHEAT_DEV_DRAFT.md` 提议把反作弊检测重新
+> 作为“下游行为检测 benchmark”支线（先做 250 条轨迹 baseline，不重训视觉模型、
+> 不接线上）。该提案待评审；在通过前，本节的 Out of Scope 仍然有效。
+
 ### 2.3 与现有框架的复用关系
 
 | 现有模块 | 新定位 | 处理方式 |
@@ -350,7 +354,20 @@
 | M2-02 | 检测基线（new-environment test） | Done | `runs/eval/pilot_v0_onnx/eval_report.json`；mAP50 0.785，head-only P/R 0.860/0.695 | 错误分析 | 2026-11-14 |
 | M2-03 | 漏检错误分析 | Done | `hard_examples/HARD_EXAMPLE_ANALYSIS.md`：43 个漏检头；small 23、clear_miss 11 | 多目标扩样 | 2026-11-14 |
 | M2-04 | 改进方向决策 | Done | 选择方向 B：补多目标数据；见 `PERCEPTION_TASKBOOK.md` | 采 3 个新 session | 2026-11-14 |
-| M2-05 | 多目标数据采集/标注 | In Progress | `docs/MULTITARGET_DATA_TASKBOOK.md`；`tools/sample_multitarget_annotation.py`、`check_multitarget_annotation.py` | 采集 3 个新 session | 2026-11-14 |
+| M2-05 | 多目标数据采集/标注 | Done（空图偏差已接受） | 150 帧、515 框、89 多目标帧；`DEVIATIONS.md`：空图 11<20 | 固定切分 | 2026-11-14 |
+| M2-06 | session-level 切分与数据卡 | Done | `split_v1/`：100 train / 50 val；`split_manifest.json`；`DATASET_CARD.md`；90 帧 test 隔离 | 微调实验 | 2026-11-14 |
+| M3-01 | 多目标微调 | Done（候选） | `cs2_multitarget_ft_v1`；90 帧 test：mAP50 0.919，head mAP50 0.922，head R@0.35 0.780；全部门槛通过；`FINETUNE_EVAL.md` | live dry-run | 2026-11-14 |
+| M3-02 | 部署候选 live 验证 | Done | 短时 live dry-run 通过（定性；FPS/选中稳定性/ROI/空背景）；新 ONNX 设为 `run_real.py` 默认权重 | 多场景 pilot | 2026-11-14 |
+| M3-03 | 旧 pilot 视频离线回放对比 | Done（初版） | `tools/compare_replay_models.py`；8,863 帧、3 场景；新模型 boxes +24.9%、empty -60.1%、jump +33.6%；报告 `replay_v1_vs_v0/REPLAY_REVIEW.md` | contact sheet 抽检 | 2026-11-14 |
+| M3-04 | 回放分歧帧人工复核 | Done | 项目所有者复核 contact sheets 后确认模型可收尾，不再补数据；`REPLAY_REVIEW.md` | 收尾/开源准备 | 2026-11-14 |
+| M3-05 | 模型收尾与开源准备 | Done | `MODEL_CARD.md`、`MODEL_MANIFEST.json`、`docs/OPEN_SOURCE_CHECKLIST.md`；R2 已修复；MIT 许可证；白名单已推送 `release/research-whitelist`（`769e2d6`） | 后续合规维护 | 2026-11-15 |
+| M4-01 | 反作弊行为检测开发草案 | Draft v0.2.1；P0-A approved | `docs/ANTICHEAT_DEV_DRAFT.md`：按学术评审改为 P0 真实 FPS 数据 + 视觉-行为对齐 + held-out 协议；现有 proxy AUC 仅作对照 | 批准 P0-B pilot | 2026-11-15 |
+| M4-02 | P0-A 标签/威胁模型协议 | Done | `docs/ANTICHEAT_LABEL_PROTOCOL.md`：H/B/C/X 定义、采集边界、数据 schema、切分与隐私规则；项目所有者批准 | 启动 2–3 session P0-B pilot | 2026-11-15 |
+| M4-03 | P0-B pilot 工具与预检 | Tooling upgraded / data blocked | 窗口采集 `window_capture.py`、生命周期、`check_fps_pilot` 独立状态、C 离线 dry-run；当前无 CS2/人类参与者 | 在真实离线环境执行 H/B pilot | 2026-11-15 |
+| M4-04 | R2 抓屏与实验流程升级 | H/B pilot + tiled C dry-run passed | `p0b_human_20261116_152512`、`p0b_game_bot_20261116_152746` 通过 timebase；3×3 tiling 后 H 759/1604、B 1124/1641 帧有检测；输出关联 source/video/model SHA | P0-C 特征分析/扩大采集 | 2026-11-16 |
+| M4-05 | P0-C tiled 特征 pilot | QC automation done; human review pending | `runs/eval/anticheat_p0c/pilot_tiled_v1`、`docs/research/P0C_PILOT_FEATURES.md`；head 检测仅 3/7，选中 run 中位数 2 帧；contact sheets 已生成 | 人工复核 contact sheets；暂不扩样 | 2026-11-16 |
+| M4-06 | P0-C old/new 模型 POV 对比 | Done（descriptive） | `docs/research/P0C_MODEL_COMPARISON.md`；同一 H/B tiled 配置下 old head 183/185，new head 3/7 | 逐框对照 | 2026-11-16 |
+| M4-07 | 默认模型回退与旧数据审计 | Done | `run_real.py` 默认回退 old；`docs/research/P0B_MODEL_DEFAULT_DECISION.md`；旧 v2 数据 135/135、33/33 平衡且无缺标签 | 决定 P0-C 统一模型/后续 POV 数据策略 | 2026-11-16 |
 
 ### 9.2 每周节奏
 
@@ -377,6 +394,7 @@
 | D-002 | 2026-11-14 | 真实鼠标控制移出主线，默认 dry-run | 安全与伦理；实习项目不需要真实注入 |
 | D-003 | 2026-11-14 | 现有 251 条行为数据保留为 `proxy` | 可复现的特征/管线仍有价值，但不能作为最终结论 |
 | D-004 | 2026-11-14 | 反作弊模型降级为下游可选项 | 先完成数据/感知闭环，避免继续堆模型 |
+| D-005 | 2026-11-15 | 反作弊检测重新作为下游研究支线提案，待评审；v0.2 要求真实 FPS 数据与视觉-行为对齐 | 学术评审指出 proxy 数据不能支撑 FPS 反作弊结论 |
 
 ### 9.5 变更日志
 
@@ -396,12 +414,40 @@
 - 2026-11-14：完成 90 帧人工标注（280 框、6 空图）与部署 ONNX 基线：mAP50 0.785，conf=0.35 全类 P/R 0.910/0.718，head-only 0.860/0.695；详见 `PERCEPTION_EVAL.md`。
 - 2026-11-14：新增 `docs/PERCEPTION_TASKBOOK.md`；完成 43 个漏检头人工分型，输出 `HARD_EXAMPLE_ANALYSIS.md`：small 23、clear_miss 11；clear_miss 中 9/11 发生在 2–4 头多目标帧，决定优先补多目标数据。
 - 2026-11-14：新增 `docs/MULTITARGET_DATA_TASKBOOK.md`、`tools/sample_multitarget_annotation.py`、`tools/check_multitarget_annotation.py`，固定多目标补采、抽样、标注和验收流程。
+- 2026-11-14：完成多目标标注 150 帧：515 框（head 259 / body 256）、89 个多目标帧、11 个空图、3 个 session；Label Studio 重复 task 10 个，用 `tools/dedupe_labelstudio_export.py` 去重后转换 `ok=true`。空图 11 < 20，已记录偏差并决定进入切分准备，不把它当零误报证据。
+- 2026-11-14：新增 `tools/split_multitarget_dataset.py` 与 `split_v1`（100 train / 50 val，90 帧 test 隔离、无 hash/session 泄漏），生成 `DATASET_CARD.md`/`DEVIATIONS.md`；新增 `configs/finetune_multitarget_v1.yaml`、`tools/finetune_multitarget.py`（默认 dry-run）和 `TRAINING_RECORD.md`，尚未训练。
+- 2026-11-14：完成 `cs2_multitarget_ft_v1` 微调（best epoch 26，早停于 41）；90 帧 test 上 ONNX mAP50 0.919（旧 0.785）、head mAP50 0.922（旧 0.745）、head R@0.35 0.780（旧 0.695），空图 FP 0/6；导出 `best.onnx`。
+- 2026-11-14：短时 live dry-run 通过；新 ONNX 设为 `run_real.py` 默认权重，显式 `--weights` 仍可回滚到旧 `cs2_detection_v2/best.onnx`；新增默认权重单元测试。
+- 2026-11-14：新增 `tools/compare_replay_models.py`，复用 3 个 pilot 视频做 8,863 帧旧/新 ONNX 回放；新模型 boxes +24.9%、empty frames -60.1%、new-only 6,483、jump +33.6%，延迟持平；生成 `replay_v1_vs_v0/REPLAY_REVIEW.md` 与三张分歧 contact sheet。
+- 2026-11-14：项目所有者复核 contact sheets 后确认模型可收尾，不再补数据；新增 `MODEL_CARD.md`、`MODEL_MANIFEST.json`（权重/证据哈希）和 `docs/OPEN_SOURCE_CHECKLIST.md`，进入开源准备阶段。
+- 2026-11-14：模型冻结后 R1–R4 定向审核完成；R1 部署/回滚 PASS；R2 发现 `AimController.log_only()` 仍向真实后端发送移动，已修复为 logging-only 路径并新增 stopped/paused 回归测试（`test_control_safety.py` 13 passed），项目所有者物理 ESC/F12 验证通过；R3/R4 保留隐私与许可证缺口，详见 `docs/FINAL_RISK_REVIEW_2026-11-14.md`。
+- 2026-11-14：新增 `docs/ACADEMIC_USE_NOTICE.md`，明确禁止违法用途、仅限学习/教学/学术研究；该声明不替代许可证，也不授予发布权。
+- 2026-11-14：新增 `docs/LEGAL_AND_ETHICS.md`，按所有者的法律风险分析记录刑/行/民边界、VDP 科研规范和红线；新增 `docs/RELEASE_WHITELIST.md` 和 `RIGHTS.md`，授权范围限定为文档、模型卡/清单、聚合指标和 MIT 许可声明，不含代码、权重、原始数据或 contact sheets。已生成并扫描本地白名单归档，记录见 `docs/RELEASE_BUILD_RECORD.md`，未上传。
+- 2026-11-14：新增根 `LICENSE`，采用 MIT，`Copyright (c) 2026 Fligymm`；`RIGHTS.md` 说明 MIT 仅覆盖项目代码/文档，权重、游戏画面/标注和第三方材料不在授权范围内。
+- 2026-11-15：新增 `docs/ANTICHEAT_DEV_DRAFT.md`，提案以现有 250 条 human/bot/synthetic 轨迹建立反作弊检测 MVP；当前仅草案，未改代码、模型或控制链路。
+- 2026-11-15：根据 `docs/research/ACADEMIC_FEASIBILITY_REVIEW.md` 更新草案至 v0.2：现有 proxy baseline/AUC 仅作对照，P0 改为真实 FPS 数据、视觉-行为对齐和 held-out 协议。
+- 2026-11-15：P0-A 标签/威胁模型协议 `docs/ANTICHEAT_LABEL_PROTOCOL.md` 完成并由项目所有者批准；尚未采集数据或修改代码。
+- 2026-11-15：P0-B pilot 工具完成：`capture_fps_pilot.py` / `check_fps_pilot.py` / 4 tests；当前无 CS2/人类参与者，未采集、未伪造数据。
+- 2026-11-15：R2 抓屏升级：新增指定窗口 fail-closed 抓屏、生命周期、POV/attestation 字段、视频/哈希独立校验和 C 离线 dry-run 工具；真实 H/B/C 验证仍待环境。
+- 2026-11-16：修复中文标题 CS2 被 `Counter-Strike 2` 字符串漏检的问题；窗口识别改为优先按 `cs2.exe` 进程匹配，真实窗口单帧 1920x1080 抓取通过。
+- 2026-11-16：增加 `--focus-window`（默认开启），解决从终端启动时 PowerShell 抢前台导致 CS2 被判定非前台的问题；焦点切换后单帧抓取通过。
+- 2026-11-16：首个真实 H pilot session `p0b_human_20261116_112054` 采集完成；文件/视频/POV 状态通过，但实际约 26.3 fps，视频 78.88s 短于 session 180.03s，`TIMEBASE_CONSISTENT=false`，不能作为最终时序数据。
+- 2026-11-16：采集默认 `--fps` 改为 30（1920×1080 mss 实测更稳定）；`check_fps_pilot` 新增 `TIMEBASE_CONSISTENT`，时长偏差超过 20% 直接判失败；现有 60fps pilot 需按 30fps 重录。
+- 2026-11-16：新 H/B pilot（`p0b_human_20261116_152512`、`p0b_game_bot_20261116_152746`）通过 timebase；C 离线 dry-run 完成，输出 source/video/model SHA 与 `capture_time_s`。
+- 2026-11-16：C 离线推理增加 3×3/720 `TiledDetector`；同一 H/B 视频检测覆盖从 43/1604、150/1641 提升到 759/1604、1124/1641，671/908 帧选中并写入 CSV。
+- 2026-11-16：P0-C tiled 特征 pilot 完成（`docs/research/P0C_PILOT_FEATURES.md`）：H/B 各 1 session，body 选中占绝对多数，track switch 偏高；当前仅描述性，不训练分类器。
+- 2026-11-16：P0-C 自动 QC 与 contact sheets：head 仅 3/7 个检测，selected run 中位数 2 帧；人工视觉复核待做，暂不扩数据集。
+- 2026-11-16：old/new 同 H/B POV 对比：old head 183/185，new head 3/7；new 在原 90 帧 320 ROI 测试仍更优。记录为 POV 域/尺度风险。
+- 2026-11-16：项目所有者决定默认回退 old：`run_real.py` 与 C 离线工具默认 `cs2_detection_v2/weights/best.onnx`；new 保留候选。旧 v2 数据审计未发现类别失衡或缺标签（train 135/135，val 33/33）。
 
 ---
 
 ## 10. 当前下一步
 
 1. **Pilot、标注、感知基线与漏检分析已完成**：43 个漏检头中 small 23、clear_miss 11。
-2. **当前执行 [`docs/PERCEPTION_TASKBOOK.md`](PERCEPTION_TASKBOOK.md) P2-03 方向 B**：采 3 个新 session，补 ≥150 帧多目标标注（≥60 帧 2+ head、≥20 空图）。
-3. 新数据按 session 切分，90 帧 pilot test 不动；训练前先做数据质量检查。
-4. 每完成一项，更新第 9.1 节状态看板与第 9.5 节变更日志。
+2. **P2-03 方向 B 数据已完成**：150 帧多目标标注、89 个多目标帧、515 框；空图 11，记录偏差后继续。
+3. 微调已完成 `cs2_multitarget_ft_v1`；90 帧 test 全部门槛通过，新 ONNX 已设为 `run_real.py` 默认权重，短时 live dry-run 已通过，详见 `runs/pilot_20261115_multitarget/FINETUNE_EVAL.md`。
+4. 旧/新 ONNX 回放（8,863 帧）已完成，项目所有者复核 contact sheets 后确认模型可收尾，不再补数据；旧 `cs2_detection_v2/best.onnx` 保留回滚。
+5. 开源准备已完成：MIT 许可证、研究披露白名单已推送到 `release/research-whitelist`；后续只做合规维护，不重推完整工作树。
+6. 反作弊检测作为下游支线：先评审 `docs/ANTICHEAT_DEV_DRAFT.md`，通过后只做 W1–W2 MVP（数据审计 + baseline），不重训视觉模型、不接线上。
+7. 每完成一项，更新第 9.1 节状态看板与第 9.5 节变更日志。

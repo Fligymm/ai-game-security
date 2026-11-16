@@ -34,6 +34,13 @@ class HardwareHIDBackend(BaseMouseBackend):
             )
         self.custom_writer(packet)
 
+    def log_relative_move(self, dx: int, dy: int) -> None:
+        """Record a mock packet; never call a real HID writer."""
+
+        if self.supports_real_output:
+            return
+        self.send_relative_move(dx, dy)
+
     @classmethod
     def format_packet(cls, dx: int, dy: int) -> bytes:
         dx = max(-32768, min(32767, int(dx)))

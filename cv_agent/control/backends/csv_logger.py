@@ -31,6 +31,11 @@ class CSVLoggerBackend(BaseMouseBackend):
         self._writer.writerow([time.time_ns(), int(dx), int(dy), repr(self._context)])
         self._handle.flush()
 
+    def log_relative_move(self, dx: int, dy: int) -> None:
+        """Record a move without any real input path."""
+
+        self.send_relative_move(dx, dy)
+
     def reset(self) -> None:
         self._context = {}
 

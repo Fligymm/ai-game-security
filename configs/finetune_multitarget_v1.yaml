@@ -1,0 +1,52 @@
+# Fixed fine-tune configuration for the multi-target ROI dataset.
+# Run with tools/finetune_multitarget.py; default is dry-run.
+schema_version: multimodal.finetune.v1
+
+dataset:
+  data_yaml: runs/pilot_20261115_multitarget/split_v1/data.yaml
+  split_manifest: runs/pilot_20261115_multitarget/split_v1/split_manifest.json
+  test_annotation: runs/pilot_20261114_1920x1080/annotation
+  expected_train: 100
+  expected_val: 50
+  expected_test: 90
+
+model:
+  weights: runs/detect/cs2_detection_v2/weights/best.pt
+
+training:
+  epochs: 50
+  patience: 15
+  imgsz: 640
+  batch: 16
+  device: 0
+  workers: 2
+  seed: 42
+  deterministic: true
+  optimizer: AdamW
+  lr0: 0.001
+  lrf: 0.01
+  warmup_epochs: 1.0
+  weight_decay: 0.0005
+  cos_lr: true
+  close_mosaic: 10
+  mosaic: 0.5
+  mixup: 0.0
+  copy_paste: 0.0
+  degrees: 0.0
+  translate: 0.1
+  scale: 0.2
+  shear: 0.0
+  perspective: 0.0
+  flipud: 0.0
+  fliplr: 0.5
+  hsv_h: 0.015
+  hsv_s: 0.7
+  hsv_v: 0.4
+  amp: true
+  val: true
+  save: true
+  plots: true
+  save_period: -1
+  project: runs/detect
+  name: cs2_multitarget_ft_v1
+  exist_ok: false
