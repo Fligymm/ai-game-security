@@ -373,7 +373,8 @@
 | M4-10 | 3H/3B old-model P0-C 特征 | Descriptive only | `docs/research/P0C_3X3_FEATURES.md`、`runs/eval/anticheat_p0c/pilot_old_tiled_v2`；head/body 比例恢复，H/B 覆盖范围重叠 | 新 session QC | 2026-11-16 |
 | M4-11 | 3H/3B 简单 baseline | Negative pilot | `docs/research/P0C_BASELINE.md`、`runs/eval/anticheat_p0c/baseline_v2`；Logistic 4/6，RF 2/6，不能作为分类结论；body 漏检 accepted limitation | 扩样后再 baseline；不调参 | 2026-11-16 |
 | M4-12 | 第二轮扩样 3H/3B -> 5H/5B | Done | `docs/ANTICHEAT_P0C_EXPANSION_ROUND2.md`；4 个新 session 通过；B-04 由 `214446` 补录 | 5H/5B baseline | 2026-11-16 |
-| M4-13 | 5H/5B P0-C 特征与 baseline | Negative pilot | `docs/research/P0C_5X5_FEATURES.md`；Logistic/RF 6/10，AUC 0.68/0.72；仍不可靠 | 不调参；扩样或改特征 | 2026-11-16 |
+| M4-13 | 5H/5B P0-C 特征与 baseline | Negative pilot | `docs/research/P0C_5X5_FEATURES.md`；Logistic/RF 6/10，AUC 0.68/0.72；仍不可靠 | 不调参；转 Feature v2 | 2026-11-16 |
+| M4-14 | P0-C Feature v2 草案 | Draft | `docs/research/P0C_FEATURE_V2_DRAFT.md`；F1 目标获取/F2 跟踪/F3 修正/F4 切换/F5 可见性；先 5H/5B go/no-go | 实现 v2 后再决定扩样 | 2026-11-16 |
 
 ### 9.2 每周节奏
 
@@ -452,6 +453,7 @@
 - 2026-11-16：第二轮扩样脚本 `scripts/capture_p0b_expansion.ps1` 完成（H-04/H-05/B-04/B-05，目标 5H/5B）；不训练分类器，等待采集。
 - 2026-11-16：H-04/H-05/B-05 通过校验；B-04 因游戏窗口失焦在 55.6s 被 fail-closed 中止，保留为 aborted，不用于分析。
 - 2026-11-16：B-04 由 `p0b_game_bot_20261116_214446` 补录并通过；完成 5H/5B 特征与 baseline（Logistic/RF 6/10），仍不支持可靠分类。
+- 2026-11-16：P0-C Feature v2 草案完成：F1 目标获取、F2 跟踪、F3 修正、F4 切换、F5 可见性；先用 5H/5B 做 go/no-go，不扩数据、不训练。
 
 ---
 
