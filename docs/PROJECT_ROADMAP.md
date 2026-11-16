@@ -376,8 +376,9 @@
 | M4-13 | 5H/5B P0-C 特征与 baseline | Negative pilot | `docs/research/P0C_5X5_FEATURES.md`；Logistic/RF 6/10，AUC 0.68/0.72；仍不可靠 | 不调参；转 Feature v2 | 2026-11-16 |
 | M4-14 | P0-C Feature v2 草案/首轮 | Implemented; conditional signal | `docs/research/P0C_FEATURE_V2_DRAFT.md`、`P0C_FEATURE_V2_RESULTS.md`；F2 tracking RF AUC 0.92，其他家族弱；10 sessions 仍小 | 固定 F2 后扩到 10H/10B 验证 | 2026-11-16 |
 | M4-15 | 第三轮扩样 5H/5B -> 10H/10B | Done | 实际 11H/10B；全部 timebase PASS；old C tiled 完成 | 固定 F2 验证 | 2026-11-16 |
-| M4-16 | 固定 F2 10H/10B 验证 | Confounded | `docs/research/P0C_FEATURE_V2_10X10.md`；Logistic 0.857 / AUC 0.918 | confounder 分析 | 2026-11-16 |
-| M4-17 | F2 confounder 分析 | Negative/blocked | `docs/research/P0C_CONFOUNDER_ANALYSIS.md`；confounders-only AUC 0.945，F2 residualized AUC 0.645；可见性/目标大小是主因 | 先做可见性匹配/不变特征 | 2026-11-16 |
+| M4-16 | 固定 F2 10H/10B 验证 | Invalidated by map confound | `P0C_FEATURE_V2_10X10.md`；6 个 H 为新地图，B 全旧地图 | 隔离新地图 H | 2026-11-16 |
+| M4-17 | F2 confounder 分析 | Invalidated by map confound | `P0C_CONFOUNDER_ANALYSIS.md`；可见性/目标大小 + 地图混入 | 旧地图 5H/5B 复检 | 2026-11-16 |
+| M4-18 | 地图 confound 审计 | Blocked | `docs/research/P0C_MAP_CONFOUND.md`；11H/10B 作废；旧地图 5H/5B F2 AUC 0.88，residual 0.64 | 请求 5 个旧地图 H | 2026-11-16 |
 
 ### 9.2 每周节奏
 
@@ -461,6 +462,7 @@
 - 2026-11-16：新增第三轮扩样请求 `ANTICHEAT_P0C_EXPANSION_ROUND3.md`：H-06..H-10 / B-06..B-10，固定 F2 特征，不重新选特征。
 - 2026-11-16：第三轮实际完成 11H/10B；固定 F2 LOO Logistic 0.857 / AUC 0.918，错误跨 3 个 session。
 - 2026-11-16：F2 confounder 分析完成：confounders-only AUC 0.945，F2 residualized AUC 0.645；F2 主要编码可见性/目标大小，不是行为差异。暂停分类器与同条件扩样。
+- 2026-11-16：发现 22:33–22:45 的 6 个 H 属于不同地图，B 全为旧地图；11H/10B F2 结果作废。旧地图 5H/5B F2 AUC 0.88/residual 0.64；请求 5 个旧地图 H。
 
 ---
 

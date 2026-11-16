@@ -1,7 +1,10 @@
 # P0-C Feature v2：10H/10B 固定 F2 验证
 
 日期：2026-11-16  
-状态：**固定 F2 的跨 session pilot 验证；仍不是论文最终结果**
+状态：**作废：11H/10B 混入 6 个新地图 H，不能用于 H/B 结论**
+> 2026-11-16 后续发现：6 个 H session 属于不同地图，B 全为旧地图。
+> 本文的 0.918 AUC 已被地图 confound 污染；仅保留为历史记录。
+> 见 [`P0C_MAP_CONFOUND.md`](P0C_MAP_CONFOUND.md)。
 
 ---
 
