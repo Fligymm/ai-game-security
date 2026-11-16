@@ -155,9 +155,11 @@ def run_loo(summary_path: str | Path, output_dir: str | Path) -> dict[str, Any]:
             else:
                 probabilities[name].append(0.5)
 
+    n_human = int(np.sum(y_arr == 0))
+    n_bot = int(np.sum(y_arr == 1))
     results: dict[str, Any] = {
         "schema_version": "anticheat.p0c_baseline.v1",
-        "description": "leave-one-session-out pilot baseline; 3 H vs 3 B",
+        "description": f"leave-one-session-out pilot baseline; {n_human} H vs {n_bot} B",
         "n_sessions": len(y_arr),
         "class_counts": {"human": int(np.sum(y_arr == 0)), "game_bot": int(np.sum(y_arr == 1))},
         "features": FEATURE_NAMES,

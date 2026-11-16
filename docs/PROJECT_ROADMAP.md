@@ -372,7 +372,8 @@
 | M4-09 | P0-C 扩样请求 | Done | 新增 H-02/H-03/B-02/B-03；4 个新 session `check_fps_pilot --verify-hash` 均通过 timebase | 新 session 人工 QC | 2026-11-16 |
 | M4-10 | 3H/3B old-model P0-C 特征 | Descriptive only | `docs/research/P0C_3X3_FEATURES.md`、`runs/eval/anticheat_p0c/pilot_old_tiled_v2`；head/body 比例恢复，H/B 覆盖范围重叠 | 新 session QC | 2026-11-16 |
 | M4-11 | 3H/3B 简单 baseline | Negative pilot | `docs/research/P0C_BASELINE.md`、`runs/eval/anticheat_p0c/baseline_v2`；Logistic 4/6，RF 2/6，不能作为分类结论；body 漏检 accepted limitation | 扩样后再 baseline；不调参 | 2026-11-16 |
-| M4-12 | 第二轮扩样 3H/3B -> 5H/5B | Pending owner capture | `docs/ANTICHEAT_P0C_EXPANSION_ROUND2.md`、`scripts/capture_p0b_expansion.ps1`；H-04/H-05/B-04/B-05 | 采集后校验并重跑 old C/baseline | 2026-11-16 |
+| M4-12 | 第二轮扩样 3H/3B -> 5H/5B | Done | `docs/ANTICHEAT_P0C_EXPANSION_ROUND2.md`；4 个新 session 通过；B-04 由 `214446` 补录 | 5H/5B baseline | 2026-11-16 |
+| M4-13 | 5H/5B P0-C 特征与 baseline | Negative pilot | `docs/research/P0C_5X5_FEATURES.md`；Logistic/RF 6/10，AUC 0.68/0.72；仍不可靠 | 不调参；扩样或改特征 | 2026-11-16 |
 
 ### 9.2 每周节奏
 
@@ -449,6 +450,8 @@
 - 2026-11-16：4 个新 session 采集并通过 timebase；old-model tiled C 与 3H/3B P0-C 特征完成（`P0C_3X3_FEATURES.md`）。
 - 2026-11-16：3H/3B leave-one-session-out baseline（`P0C_BASELINE.md`）：Logistic 4/6、RF 2/6、Dummy 3/6；当前特征不可分类。body 少量漏检因样本少/姿态变化，记录为 accepted limitation。
 - 2026-11-16：第二轮扩样脚本 `scripts/capture_p0b_expansion.ps1` 完成（H-04/H-05/B-04/B-05，目标 5H/5B）；不训练分类器，等待采集。
+- 2026-11-16：H-04/H-05/B-05 通过校验；B-04 因游戏窗口失焦在 55.6s 被 fail-closed 中止，保留为 aborted，不用于分析。
+- 2026-11-16：B-04 由 `p0b_game_bot_20261116_214446` 补录并通过；完成 5H/5B 特征与 baseline（Logistic/RF 6/10），仍不支持可靠分类。
 
 ---
 

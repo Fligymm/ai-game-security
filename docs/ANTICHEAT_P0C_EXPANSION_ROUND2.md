@@ -1,7 +1,23 @@
 # P0-C 第二轮扩样：3H/3B -> 5H/5B
 
 日期：2026-11-16  
-状态：**等待采集；不训练分类器**
+状态：**已完成 5H/5B；B-04 由 `p0b_game_bot_20261116_214446` 补录；baseline 完成但不支持可靠分类**
+
+当前结果：
+
+```text
+H-04  p0b_human_20261116_213610    ok=true / timebase=true
+H-05  p0b_human_20261116_213729    ok=true / timebase=true
+B-04  p0b_game_bot_20261116_213851 capture_aborted: game window lost foreground
+B-05  p0b_game_bot_20261116_214003 ok=true / timebase=true
+```
+
+B-04 已由 `p0b_game_bot_20261116_214446` 补录并通过校验。当前有效为 **5H / 5B**。
+
+5H/5B 特征和 baseline：
+
+- [`P0C_5X5_FEATURES.md`](research/P0C_5X5_FEATURES.md)
+- Logistic / RF 均 6/10；AUC 0.68 / 0.72；仍不支持可靠分类。
 
 ## 原因
 
@@ -83,6 +99,20 @@ RandomForest depth=2  accuracy 0.333, AUC 0.222
   -CaptureSource observer_followed_bot `
   -OperatorId anon_b05
 ```
+
+### B-04 补录（替代 aborted session）
+
+B-04 在 55.6 秒时因游戏窗口失焦被 fail-closed 中止，不能使用。请重新进入
+观察者第一人称后运行：
+
+```powershell
+.\scripts\capture_p0b_expansion.ps1 `
+  -AgentType game_bot `
+  -CaptureSource observer_followed_bot `
+  -OperatorId anon_b04b
+```
+
+采集期间不要点回终端或切换窗口。
 
 ## 采集后
 
