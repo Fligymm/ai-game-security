@@ -52,7 +52,7 @@ B = 5
 时长            60 秒
 分辨率          1920×1080
 FPS             30
-地图            aim_botz
+地图            这批新 H 为 aim_botz；旧 H/B 为 dust2（不能混用）
 场景            static_target
 武器            ak47
 灵敏度          0.8

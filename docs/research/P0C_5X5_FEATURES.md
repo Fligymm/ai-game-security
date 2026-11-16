@@ -35,7 +35,7 @@ p0b_game_bot_20261116_214003
 p0b_game_bot_20261116_214446
 ```
 
-所有 session 均为 60s、1920×1080、aim_botz/static_target、first_person，
+所有 session 均为 60s、1920×1080、dust2/static_target、first_person，
 并通过 `TIMEBASE_CONSISTENT`。
 
 ---

@@ -24,7 +24,7 @@ tile_size=720, grid=3, conf=0.35, iou=0.5
 所有 session：
 
 ```text
-60s, 1920x1080, aim_botz, static_target,
+60s, 1920x1080, dust2, static_target,
 ak47, sensitivity=0.8, fov=90, first_person
 timebase PASS
 ```

@@ -40,7 +40,8 @@ param(
     [int]$Fps = 30,
 
     [string]$Scene = "static_target",
-    [string]$MapName = "aim_botz",
+    # Controlled old-map captures are dust2; pass -MapName explicitly for another map.
+    [string]$MapName = "dust2",
     [string]$Weapon = "ak47",
     [double]$Sensitivity = 0.8,
     [int]$Fov = 90,

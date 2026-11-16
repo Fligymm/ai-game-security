@@ -137,7 +137,7 @@ TIMEBASE_CONSISTENT
   --capture-source player_pov `
   --view-mode first_person `
   --scene static_target `
-  --map-name aim_botz `
+  --map-name dust2 `
   --weapon ak47 `
   --sensitivity 0.8 `
   --fov 90 `
@@ -199,7 +199,7 @@ $session = Get-ChildItem runs\captures\p0b_pilot -Directory |
   --capture-source observer_followed_bot `
   --view-mode first_person `
   --scene static_target `
-  --map-name aim_botz `
+  --map-name dust2 `
   --weapon ak47 `
   --sensitivity 0.8 `
   --fov 90 `

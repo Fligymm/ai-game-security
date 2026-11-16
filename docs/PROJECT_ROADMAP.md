@@ -378,7 +378,7 @@
 | M4-15 | 第三轮扩样 5H/5B -> 10H/10B | Done | 实际 11H/10B；全部 timebase PASS；old C tiled 完成 | 固定 F2 验证 | 2026-11-16 |
 | M4-16 | 固定 F2 10H/10B 验证 | Invalidated by map confound | `P0C_FEATURE_V2_10X10.md`；6 个 H 为新地图，B 全旧地图 | 隔离新地图 H | 2026-11-16 |
 | M4-17 | F2 confounder 分析 | Invalidated by map confound | `P0C_CONFOUNDER_ANALYSIS.md`；可见性/目标大小 + 地图混入 | 旧地图 5H/5B 复检 | 2026-11-16 |
-| M4-18 | 地图 confound 审计 | Blocked | `docs/research/P0C_MAP_CONFOUND.md`；11H/10B 作废；旧地图 5H/5B F2 AUC 0.88，residual 0.64 | 请求 5 个旧地图 H | 2026-11-16 |
+| M4-18 | 地图 confound 审计/标签修正 | Labeled; blocked on data | `docs/research/P0C_MAP_CONFOUND.md`；旧 15 = dust2，新 6H = aim_botz；11H/10B 作废；旧 dust2 5H/5B F2 AUC 0.88/residual 0.64 | 请求 5 个 dust2 H | 2026-11-17 |
 
 ### 9.2 每周节奏
 
@@ -462,7 +462,8 @@
 - 2026-11-16：新增第三轮扩样请求 `ANTICHEAT_P0C_EXPANSION_ROUND3.md`：H-06..H-10 / B-06..B-10，固定 F2 特征，不重新选特征。
 - 2026-11-16：第三轮实际完成 11H/10B；固定 F2 LOO Logistic 0.857 / AUC 0.918，错误跨 3 个 session。
 - 2026-11-16：F2 confounder 分析完成：confounders-only AUC 0.945，F2 residualized AUC 0.645；F2 主要编码可见性/目标大小，不是行为差异。暂停分类器与同条件扩样。
-- 2026-11-16：发现 22:33–22:45 的 6 个 H 属于不同地图，B 全为旧地图；11H/10B F2 结果作废。旧地图 5H/5B F2 AUC 0.88/residual 0.64；请求 5 个旧地图 H。
+- 2026-11-16：发现 22:33–22:45 的 6 个 H 属于不同地图，B 全为旧地图；11H/10B F2 结果作废。旧地图 5H/5B F2 AUC 0.88/residual 0.64。
+- 2026-11-17：地图标签修正：旧 15 个 session = dust2，6 个新 H = aim_botz；`session.json` 与 `manifest.json` 同步，manifest SHA 重算；请求 5 个 dust2 H。
 
 ---
 

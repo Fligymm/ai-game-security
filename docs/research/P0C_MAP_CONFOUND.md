@@ -1,17 +1,17 @@
 # P0-C 地图 confound 与数据隔离
 
 日期：2026-11-16  
-状态：**新补齐的 6 个 H session 与旧 H/B 地图不一致；11H/10B F2 结果不能使用**
+状态：**地图标签已更正：旧 15 个 session = dust2；6 个新 H = aim_botz；11H/10B F2 结果不能使用**
 
 ---
 
 ## 1. 发现
 
-项目所有者确认：
+项目所有者确认并更正：
 
 ```text
-22:33–22:45 的 6 个 H session 属于不同地图
-旧 5 个 H 和所有 B session 属于旧地图
+旧 5 个 H + 所有 B（15 个有效 session）：dust2
+22:33–22:45 的 6 个 H session：aim_botz
 ```
 
 6 个 H session：
@@ -25,15 +25,15 @@ p0b_human_20261116_224340
 p0b_human_20261116_224520
 ```
 
-这些 session 的 `session.json` 仍写着：
+更正前这些 session 的 `session.json` 都写着 `map = aim_botz`。
+现在已按实际地图修正：
 
-```text
-map = aim_botz
-scene = static_target
-```
+- 旧 5H / 10B：`map = dust2`
+- 6 个新 H：`map = aim_botz`
 
-说明 `--map-name` 元数据是人工填写，**没有验证实际地图**；这次填写错误。
-这是数据质量问题，不是采集工具自动识别错误。
+`session.json` 与 `manifest.json` 的 `session.extra.map` 已同步更新，
+manifest 中 `session.json` 的 SHA256 也已重算。
+`--map-name` 仍是人工填写，没有自动地图识别。
 
 ---
 
@@ -59,7 +59,7 @@ scene = static_target
 
 ---
 
-## 3. 旧地图可用数据
+## 3. 旧地图（dust2）可用数据
 
 旧地图：
 
@@ -107,7 +107,7 @@ F2 residualized 后 AUC 0.640，仍不足以支持行为结论。
 
 ## 5. 需要的新数据
 
-请求新增 **5 个旧地图 H session**：
+请求新增 **5 个 dust2 H session**：
 
 | Session | 类型 | operator_id |
 |---|---|---|
@@ -120,7 +120,7 @@ F2 residualized 后 AUC 0.640，仍不足以支持行为结论。
 条件：
 
 ```text
-地图：与旧 5H / 所有 B 相同（旧地图；当前记录为 aim_botz，需人工确认）
+地图：dust2（与旧 5H / 所有 B 相同）
 场景：static_target
 60s, 1920x1080, 30 FPS
 ak47, sensitivity=0.8, fov=90
@@ -137,12 +137,13 @@ old 模型默认
   -AgentType human `
   -CaptureSource player_pov `
   -OperatorId anon_h11 `
-  -MapName aim_botz
+  -MapName dust2
 ```
 
 依次改到 `anon_h12` … `anon_h15`。
 
-> 如果实际地图不是 aim_botz，请用真实地图名，不能沿用默认值。
+> 旧地图已确认为 `dust2`；新采集的 5 个 H 必须使用 `-MapName dust2`，
+> 不能沿用脚本默认值或 `aim_botz`。
 
 ---
 

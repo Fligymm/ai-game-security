@@ -25,7 +25,7 @@ B  p0b_game_bot_20261116_152746
 两个 session 都是：
 
 ```text
-60s, 1920x1080, aim_botz, static_target, ak47,
+60s, 1920x1080, dust2, static_target, ak47,
 sensitivity=0.8, fov=90, first_person
 old model default
 ```
@@ -65,7 +65,7 @@ old model default
   --capture-source player_pov `
   --view-mode first_person `
   --scene static_target `
-  --map-name aim_botz `
+  --map-name dust2 `
   --weapon ak47 `
   --sensitivity 0.8 `
   --fov 90 `
@@ -89,7 +89,7 @@ old model default
   --capture-source observer_followed_bot `
   --view-mode first_person `
   --scene static_target `
-  --map-name aim_botz `
+  --map-name dust2 `
   --weapon ak47 `
   --sensitivity 0.8 `
   --fov 90 `

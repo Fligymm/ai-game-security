@@ -59,7 +59,7 @@ Human session 需要两个独立步骤：
   --capture-source player_pov `
   --view-mode first_person `
   --scene static_target `
-  --map-name aim_botz `
+  --map-name dust2 `
   --weapon ak47 `
   --sensitivity 0.8 `
   --fov 90 `
@@ -143,7 +143,7 @@ Human session 需要两个独立步骤：
   --capture-source observer_followed_bot `
   --view-mode first_person `
   --scene static_target `
-  --map-name aim_botz `
+  --map-name dust2 `
   --weapon ak47 `
   --sensitivity 0.8 `
   --fov 90 `
@@ -421,7 +421,7 @@ P0-B tool    CODE EXISTS / ENTRYPOINT EXISTS / CAN RUN OFFLINE PARTIAL / DATA CA
 ```powershell
 .\.venv\Scripts\python.exe tools\capture_fps_pilot.py `
   --agent-type human --capture-source player_pov --view-mode first_person `
-  --scene static_target --map-name aim_botz --weapon ak47 `
+  --scene static_target --map-name dust2 --weapon ak47 `
   --sensitivity 0.8 --fov 90 --duration 180 `
   --operator-id anon_h01 `
   --output-dir runs\captures\p0b_pilot `
@@ -433,7 +433,7 @@ P0-B tool    CODE EXISTS / ENTRYPOINT EXISTS / CAN RUN OFFLINE PARTIAL / DATA CA
 ```powershell
 .\.venv\Scripts\python.exe tools\capture_fps_pilot.py `
   --agent-type game_bot --capture-source observer_followed_bot `
-  --view-mode first_person --scene static_target --map-name aim_botz `
+  --view-mode first_person --scene static_target --map-name dust2 `
   --weapon ak47 --sensitivity 0.8 --fov 90 --duration 180 `
   --operator-id anon_b01 `
   --output-dir runs\captures\p0b_pilot `

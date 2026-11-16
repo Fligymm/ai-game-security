@@ -123,7 +123,7 @@ CSV 输出：
 ```text
 H = 1 session
 B = 1 session
-map = aim_botz
+map = dust2
 scene = static_target
 ```
 
