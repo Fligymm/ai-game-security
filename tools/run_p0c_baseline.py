@@ -7,6 +7,7 @@ pilot metrics only. It must not be presented as a general anti-cheat classifier.
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import sys
 from pathlib import Path
@@ -83,27 +84,64 @@ def _safe_auc(y_true: np.ndarray, scores: np.ndarray) -> float | None:
     return float(roc_auc_score(y_true, scores))
 
 
-def run_loo(summary_path: str | Path, output_dir: str | Path) -> dict[str, Any]:
-    payload = json.loads(Path(summary_path).read_text(encoding="utf-8"))
-    summaries = payload.get("summaries", [])
-    if len(summaries) < 4:
-        raise ValueError("need at least four sessions for a pilot baseline")
-    rows = []
-    y = []
-    ids = []
-    agents = []
-    for summary in summaries:
-        agent = summary.get("agent_type")
-        if agent not in {"human", "game_bot"}:
-            continue
-        rows.append(feature_row(summary))
-        y.append(0 if agent == "human" else 1)
-        ids.append(str(summary.get("source_session_id")))
-        agents.append(str(agent))
+def _load_feature_csv(path: Path) -> tuple[list[dict[str, float]], list[int], list[str], list[str], list[str]]:
+    rows: list[dict[str, float]] = []
+    y: list[int] = []
+    ids: list[str] = []
+    agents: list[str] = []
+    with path.open(encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        if reader.fieldnames is None:
+            raise ValueError(f"empty features csv: {path}")
+        feature_names = [
+            name for name in reader.fieldnames
+            if name not in {"session_id", "agent_type", "label"}
+        ]
+        for row in reader:
+            agent = row.get("agent_type")
+            if agent not in {"human", "game_bot"}:
+                continue
+            rows.append({name: float(row.get(name) or 0.0) for name in feature_names})
+            y.append(0 if agent == "human" else 1)
+            ids.append(str(row.get("session_id")))
+            agents.append(str(agent))
+    return rows, y, ids, agents, feature_names
+
+
+def run_loo(
+    summary_path: str | Path | None,
+    output_dir: str | Path,
+    *,
+    features_csv: str | Path | None = None,
+) -> dict[str, Any]:
+    if features_csv is not None:
+        rows, y, ids, agents, feature_names = _load_feature_csv(Path(features_csv))
+        if len(rows) < 4:
+            raise ValueError("need at least four sessions for a pilot baseline")
+    else:
+        if summary_path is None:
+            raise ValueError("either summary_path or features_csv is required")
+        payload = json.loads(Path(summary_path).read_text(encoding="utf-8"))
+        summaries = payload.get("summaries", [])
+        if len(summaries) < 4:
+            raise ValueError("need at least four sessions for a pilot baseline")
+        rows = []
+        y = []
+        ids = []
+        agents = []
+        feature_names = list(FEATURE_NAMES)
+        for summary in summaries:
+            agent = summary.get("agent_type")
+            if agent not in {"human", "game_bot"}:
+                continue
+            rows.append(feature_row(summary))
+            y.append(0 if agent == "human" else 1)
+            ids.append(str(summary.get("source_session_id")))
+            agents.append(str(agent))
     if len(set(y)) < 2:
         raise ValueError("need both human and game_bot sessions")
 
-    X = np.asarray([[row[name] for name in FEATURE_NAMES] for row in rows], dtype=float)
+    X = np.asarray([[row[name] for name in feature_names] for row in rows], dtype=float)
     y_arr = np.asarray(y, dtype=int)
     output = Path(output_dir)
     if output.exists() and any(output.iterdir()):
@@ -162,7 +200,7 @@ def run_loo(summary_path: str | Path, output_dir: str | Path) -> dict[str, Any]:
         "description": f"leave-one-session-out pilot baseline; {n_human} H vs {n_bot} B",
         "n_sessions": len(y_arr),
         "class_counts": {"human": int(np.sum(y_arr == 0)), "game_bot": int(np.sum(y_arr == 1))},
-        "features": FEATURE_NAMES,
+        "features": feature_names,
         "sessions": [
             {"session_id": sid, "agent_type": agent, "label": int(label), **row}
             for sid, agent, label, row in zip(ids, agents, y_arr.tolist(), rows)
@@ -183,9 +221,9 @@ def run_loo(summary_path: str | Path, output_dir: str | Path) -> dict[str, Any]:
         }
 
     (output / "features.csv").write_text(
-        "session_id,agent_type,label," + ",".join(FEATURE_NAMES) + "\n"
+        "session_id,agent_type,label," + ",".join(feature_names) + "\n"
         + "\n".join(
-            f"{sid},{agent},{label}," + ",".join(str(row[name]) for name in FEATURE_NAMES)
+            f"{sid},{agent},{label}," + ",".join(str(row[name]) for name in feature_names)
             for sid, agent, label, row in zip(ids, agents, y_arr.tolist(), rows)
         )
         + "\n",
@@ -206,10 +244,11 @@ def run_loo(summary_path: str | Path, output_dir: str | Path) -> dict[str, Any]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run 3H/3B P0-C session-level LOO pilot baseline")
     parser.add_argument("--summary", type=Path, default=Path("runs/eval/anticheat_p0c/pilot_old_tiled_v2/summary.json"))
+    parser.add_argument("--features-csv", type=Path, default=None)
     parser.add_argument("--output-dir", type=Path, default=Path("runs/eval/anticheat_p0c/baseline_v1"))
     args = parser.parse_args(argv)
     try:
-        results = run_loo(args.summary, args.output_dir)
+        results = run_loo(args.summary, args.output_dir, features_csv=args.features_csv)
     except Exception as exc:
         print(f"[ERROR] baseline failed: {exc}", file=sys.stderr)
         return 2
