@@ -1,7 +1,7 @@
 # P0-C 地图 confound 与数据隔离
 
 日期：2026-11-16  
-状态：**地图标签已更正：dust2 5H/5B；nuke 0H/5B；aim_botz 6H/0B；11H/10B F2 结果不能使用**
+状态：**地图标签已更正；nuke 5H/5B 已完成；平衡 10H/10B 结果见 `P0C_F2_BALANCED_MAPS.md`；11H/10B 结果不能使用**
 
 ---
 
@@ -15,8 +15,15 @@
 22:33–22:45 的 6 个 H session：aim_botz
 ```
 
-当前 21 个有效 session 分布在三个地图，**没有任何一个地图同时有 10H/10B**。
-唯一有 H/B 配对的是 dust2 的 5H/5B。
+当前 26 个有效 session 分布在三个地图：
+
+```text
+dust2   5H/5B
+nuke    5H/5B
+aim_botz 6H/0B
+```
+
+可以形成 dust2+nuke 的平衡 10H/10B；aim_botz 仍只有 H。
 
 6 个 H session：
 
@@ -67,8 +74,8 @@ manifest 中 `session.json` 的 SHA256 也已重算。
 
 混合。分类器很容易学到**地图**，而不是行为。
 
-必须按地图隔离：目前只有 dust2 5H/5B 可以配对；nuke 和 aim_botz
-都不能单独做 H/B 对比。
+必须按地图隔离：dust2 5H/5B 和 nuke 5H/5B 可以分别配对；
+aim_botz 仍只有 H、没有 B，不能做 H/B 对比。
 
 ---
 
@@ -84,8 +91,8 @@ B = 5
 nuke 目前：
 
 ```text
-H = 0
-B = 5
+H = 5（193050–193607）
+B = 5（224959–225515）
 ```
 
 aim_botz 目前：
@@ -135,7 +142,7 @@ F2 residualized 后 AUC 0.640，仍不足以支持行为结论。
 
 ## 5. 需要的新数据
 
-请求新增 **5 个 nuke H session**（与已有 nuke B 配对）：
+已完成：**5 个 nuke H session**（与已有 nuke B 配对）：
 
 | Session | 类型 | operator_id |
 |---|---|---|
@@ -179,8 +186,8 @@ old 模型默认
 ## 6. 下一步
 
 1. 隔离 6 个新地图 H：不进入 H/B baseline；
-2. 等 5 个 nuke H 采集完成；
-3. 固定 F2，用 dust2 5H/5B + nuke 5H/5B 重跑；
+2. nuke H 已完成；
+3. 固定 F2，用 dust2 5H/5B + nuke 5H/5B 重跑；结果见 `P0C_F2_BALANCED_MAPS.md`；
 4. 再做 confounder 分析；
 5. 不训练正式分类器。
 
@@ -192,6 +199,6 @@ old 模型默认
 11H/10B 结果作废
 新地图 H 只用于后续 cross-map 实验
 B 不补
-请求 5 个 nuke H
+nuke H 已完成；转向 F2 confound/不变特征
 不训练分类器
 ```

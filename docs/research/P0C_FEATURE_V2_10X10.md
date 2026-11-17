@@ -5,6 +5,7 @@
 > 2026-11-16 后续发现：6 个 H session 属于不同地图，B 全为旧地图。
 > 本文的 0.918 AUC 已被地图 confound 污染；仅保留为历史记录。
 > 见 [`P0C_MAP_CONFOUND.md`](P0C_MAP_CONFOUND.md)。
+> 地图平衡后的复检见 [`P0C_F2_BALANCED_MAPS.md`](P0C_F2_BALANCED_MAPS.md)。
 
 ---
 

@@ -5,6 +5,7 @@
 > 后续补充：21-session 数据同时混入 6 个 aim_botz H 和 5 个 nuke B。
 > 地图 confound 使本文结论更强：当前数据不能用于 H/B 分类。
 > 见 [`P0C_MAP_CONFOUND.md`](P0C_MAP_CONFOUND.md)。
+> 地图平衡后的 confounder 复检见 [`P0C_F2_BALANCED_MAPS.md`](P0C_F2_BALANCED_MAPS.md)。
 
 ---
 
