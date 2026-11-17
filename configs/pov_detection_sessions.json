@@ -1,0 +1,27 @@
+{
+  "schema_version": "anticheat.pov_detection_sessions.v1",
+  "description": "Balanced dust2+nuke POV detection split; prelabels come from old-model tiled inference.",
+  "classes": ["enemy_head", "enemy_body"],
+  "sessions": [
+    {"session_id": "p0b_human_20261116_205945", "agent_type": "human", "map": "dust2", "split": "train", "inference_dir": "runs/eval/anticheat_cv_offline/p0b_human_20261116_205945_v0_tiled", "capture_dir": "runs/captures/p0b_pilot/p0b_human_20261116_205945"},
+    {"session_id": "p0b_human_20261116_213610", "agent_type": "human", "map": "dust2", "split": "train", "inference_dir": "runs/eval/anticheat_cv_offline/p0b_human_20261116_213610_v0_tiled", "capture_dir": "runs/captures/p0b_pilot/p0b_human_20261116_213610"},
+    {"session_id": "p0b_human_20261116_213729", "agent_type": "human", "map": "dust2", "split": "train", "inference_dir": "runs/eval/anticheat_cv_offline/p0b_human_20261116_213729_v0_tiled", "capture_dir": "runs/captures/p0b_pilot/p0b_human_20261116_213729"},
+    {"session_id": "p0b_game_bot_20261116_210336", "agent_type": "game_bot", "map": "dust2", "split": "train", "inference_dir": "runs/eval/anticheat_cv_offline/p0b_game_bot_20261116_210336_v0_tiled", "capture_dir": "runs/captures/p0b_pilot/p0b_game_bot_20261116_210336"},
+    {"session_id": "p0b_game_bot_20261116_214003", "agent_type": "game_bot", "map": "dust2", "split": "train", "inference_dir": "runs/eval/anticheat_cv_offline/p0b_game_bot_20261116_214003_v0_tiled", "capture_dir": "runs/captures/p0b_pilot/p0b_game_bot_20261116_214003"},
+    {"session_id": "p0b_game_bot_20261116_214446", "agent_type": "game_bot", "map": "dust2", "split": "train", "inference_dir": "runs/eval/anticheat_cv_offline/p0b_game_bot_20261116_214446_v0_tiled", "capture_dir": "runs/captures/p0b_pilot/p0b_game_bot_20261116_214446"},
+    {"session_id": "p0b_human_20261117_193336", "agent_type": "human", "map": "nuke", "split": "train", "inference_dir": "runs/eval/anticheat_cv_offline/p0b_human_20261117_193336_v0_tiled", "capture_dir": "runs/captures/p0b_pilot/p0b_human_20261117_193336"},
+    {"session_id": "p0b_human_20261117_193452", "agent_type": "human", "map": "nuke", "split": "train", "inference_dir": "runs/eval/anticheat_cv_offline/p0b_human_20261117_193452_v0_tiled", "capture_dir": "runs/captures/p0b_pilot/p0b_human_20261117_193452"},
+    {"session_id": "p0b_human_20261117_193607", "agent_type": "human", "map": "nuke", "split": "train", "inference_dir": "runs/eval/anticheat_cv_offline/p0b_human_20261117_193607_v0_tiled", "capture_dir": "runs/captures/p0b_pilot/p0b_human_20261117_193607"},
+    {"session_id": "p0b_game_bot_20261116_225221", "agent_type": "game_bot", "map": "nuke", "split": "train", "inference_dir": "runs/eval/anticheat_cv_offline/p0b_game_bot_20261116_225221_v0_tiled", "capture_dir": "runs/captures/p0b_pilot/p0b_game_bot_20261116_225221"},
+    {"session_id": "p0b_game_bot_20261116_225359", "agent_type": "game_bot", "map": "nuke", "split": "train", "inference_dir": "runs/eval/anticheat_cv_offline/p0b_game_bot_20261116_225359_v0_tiled", "capture_dir": "runs/captures/p0b_pilot/p0b_game_bot_20261116_225359"},
+    {"session_id": "p0b_game_bot_20261116_225515", "agent_type": "game_bot", "map": "nuke", "split": "train", "inference_dir": "runs/eval/anticheat_cv_offline/p0b_game_bot_20261116_225515_v0_tiled", "capture_dir": "runs/captures/p0b_pilot/p0b_game_bot_20261116_225515"},
+    {"session_id": "p0b_human_20261116_205805", "agent_type": "human", "map": "dust2", "split": "val", "inference_dir": "runs/eval/anticheat_cv_offline/p0b_human_20261116_205805_v0_tiled", "capture_dir": "runs/captures/p0b_pilot/p0b_human_20261116_205805"},
+    {"session_id": "p0b_game_bot_20261116_210201", "agent_type": "game_bot", "map": "dust2", "split": "val", "inference_dir": "runs/eval/anticheat_cv_offline/p0b_game_bot_20261116_210201_v0_tiled", "capture_dir": "runs/captures/p0b_pilot/p0b_game_bot_20261116_210201"},
+    {"session_id": "p0b_human_20261117_193214", "agent_type": "human", "map": "nuke", "split": "val", "inference_dir": "runs/eval/anticheat_cv_offline/p0b_human_20261117_193214_v0_tiled", "capture_dir": "runs/captures/p0b_pilot/p0b_human_20261117_193214"},
+    {"session_id": "p0b_game_bot_20261116_225112", "agent_type": "game_bot", "map": "nuke", "split": "val", "inference_dir": "runs/eval/anticheat_cv_offline/p0b_game_bot_20261116_225112_v0_tiled", "capture_dir": "runs/captures/p0b_pilot/p0b_game_bot_20261116_225112"},
+    {"session_id": "p0b_human_20261116_152512", "agent_type": "human", "map": "dust2", "split": "test", "inference_dir": "runs/eval/anticheat_cv_offline/p0b_human_20261116_152512_v0_tiled", "capture_dir": "runs/captures/p0b_pilot/p0b_human_20261116_152512"},
+    {"session_id": "p0b_game_bot_20261116_152746", "agent_type": "game_bot", "map": "dust2", "split": "test", "inference_dir": "runs/eval/anticheat_cv_offline/p0b_game_bot_20261116_152746_v0_tiled", "capture_dir": "runs/captures/p0b_pilot/p0b_game_bot_20261116_152746"},
+    {"session_id": "p0b_human_20261117_193050", "agent_type": "human", "map": "nuke", "split": "test", "inference_dir": "runs/eval/anticheat_cv_offline/p0b_human_20261117_193050_v0_tiled", "capture_dir": "runs/captures/p0b_pilot/p0b_human_20261117_193050"},
+    {"session_id": "p0b_game_bot_20261116_224959", "agent_type": "game_bot", "map": "nuke", "split": "test", "inference_dir": "runs/eval/anticheat_cv_offline/p0b_game_bot_20261116_224959_v0_tiled", "capture_dir": "runs/captures/p0b_pilot/p0b_game_bot_20261116_224959"}
+  ]
+}

@@ -232,7 +232,15 @@ benchmark/negative-result 主线。
 
 ---
 
-## 9. 工作草稿
+## 9. 方向调整（2026-11-17）
+
+如果优先追求“可产生正结果、可投应用型期刊”，主线转向：
+
+- [`POV_DETECTION_PLAN.md`](POV_DETECTION_PLAN.md)
+
+即 POV 游戏屏幕目标检测的域适应；当前 negative/benchmark 论文保留为 fallback。
+
+## 10. 工作草稿
 
 短论文工作草稿：
 
@@ -241,7 +249,13 @@ benchmark/negative-result 主线。
 当前草稿已包含：协议、模型审计、F2 结果、confound 分析、限制和负结果。
 引用、图表和 venue 模板仍待补。
 
-## 10. 一句话
+## 11. 当前选择
 
-**最合适的论文方向是“可复现基准 + 混杂因素 + 负结果”的测量型论文，
-而不是继续抢救一个被 confound 主导的 H/B 分类器。**
+优先级已调整为：
+
+```text
+主线：POV 目标检测域适应（可产生正结果）
+保底：benchmark/negative-result 短论文
+```
+
+不再以“抢救 H/B 分类器”为主投入。

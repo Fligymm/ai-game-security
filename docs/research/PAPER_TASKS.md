@@ -170,7 +170,29 @@
 
 ---
 
-## 7. 最小可投稿包
+## 7. 当前转向：POV 检测（2026-11-17）
+
+主线调整为 POV 目标检测域适应，详见 [`POV_DETECTION_PLAN.md`](POV_DETECTION_PLAN.md)。
+
+已生成：
+
+```text
+datasets/pov_detection_v1/
+400 images
+12 train / 4 val / 4 test sessions
+415 prelabel boxes
+```
+
+当前需要人工完成：
+
+- [ ] 复核 80 张 test 预标注；
+- [ ] 抽查 64 张 train/val；
+- [ ] 修正 head/body 框和空帧；
+- [ ] 导出 YOLO 标签。
+
+完成后再训练 POV 模型；未复核前不报告指标。
+
+## 8. 最小可投稿包
 
 ```text
 4–6 页短论文
