@@ -383,6 +383,7 @@
 | M4-20 | 不变特征/匹配分析 | Negative | `docs/research/P0C_INVARIANT_FEATURES.md`；不变特征 AUC 0.75，残差 0.57；匹配子集 AUC 0.75–0.76、acc 0.60 | 论文方向决策 | 2026-11-17 |
 | M4-21 | 论文方向建议 | Decided | `docs/research/PAPER_DIRECTION.md`；推荐 benchmark/measurement/negative-result，不推荐 H/B 分类器或 dataset paper | 短论文草稿 | 2026-11-17 |
 | M4-22 | 短论文工作草稿 | Draft | `docs/research/SHORT_PAPER_DRAFT.md`；标题/摘要/协议/模型审计/F2/confound/限制/结论；引用/图表/venue 待补 | 补引用/图表/模板 | 2026-11-17 |
+| M4-23 | 论文推进清单 | Active | `docs/research/PAPER_TASKS.md`；可推进项、需所有者提供项、审核项 | 数字冻结/图表/压缩 | 2026-11-17 |
 
 ### 9.2 每周节奏
 
@@ -472,6 +473,7 @@
 - 2026-11-17：不变特征与目标面积/可见性匹配复检完成（`P0C_INVARIANT_FEATURES.md`）：不变特征 AUC 0.75、残差 0.57；匹配子集 AUC 0.75–0.76、acc 0.60；F2 路线暂停。
 - 2026-11-17：论文方向定案（`PAPER_DIRECTION.md`）：推荐 benchmark/measurement/negative-result；不推荐 H/B 分类器、dataset paper；先投 workshop/short paper。
 - 2026-11-17：短论文工作草稿 `SHORT_PAPER_DRAFT.md` 完成：协议、模型域漂移、F2/confound 负结果、限制与结论；引用/图表/venue 模板待补。
+- 2026-11-17：论文推进清单 `PAPER_TASKS.md` 完成，明确我可直接推进项、需所有者提供/审核项；开始数字冻结与图表。
 
 ---
 
