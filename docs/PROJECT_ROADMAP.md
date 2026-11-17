@@ -381,7 +381,8 @@
 | M4-18 | 地图 confound 审计/标签修正 | Done | `docs/research/P0C_MAP_CONFOUND.md`；dust2 5H/5B、nuke 5H/5B、aim_botz 6H/0B；11H/10B 作废 | 平衡 10H/10B F2 | 2026-11-17 |
 | M4-19 | dust2+nuke 平衡 10H/10B | Negative/conditional | `docs/research/P0C_F2_BALANCED_MAPS.md`；F2 Logistic 0.80/AUC 0.82，RF 0.85/AUC 0.90；nuke 仅 0.68；F2 residualized 0.55 | 停训；做不变特征/可见性匹配 | 2026-11-17 |
 | M4-20 | 不变特征/匹配分析 | Negative | `docs/research/P0C_INVARIANT_FEATURES.md`；不变特征 AUC 0.75，残差 0.57；匹配子集 AUC 0.75–0.76、acc 0.60 | 论文方向决策 | 2026-11-17 |
-| M4-21 | 论文方向建议 | Decided | `docs/research/PAPER_DIRECTION.md`；推荐 benchmark/measurement/negative-result，不推荐 H/B 分类器或 dataset paper | 冻结数据，写提纲/短论文 | 2026-11-17 |
+| M4-21 | 论文方向建议 | Decided | `docs/research/PAPER_DIRECTION.md`；推荐 benchmark/measurement/negative-result，不推荐 H/B 分类器或 dataset paper | 短论文草稿 | 2026-11-17 |
+| M4-22 | 短论文工作草稿 | Draft | `docs/research/SHORT_PAPER_DRAFT.md`；标题/摘要/协议/模型审计/F2/confound/限制/结论；引用/图表/venue 待补 | 补引用/图表/模板 | 2026-11-17 |
 
 ### 9.2 每周节奏
 
@@ -470,6 +471,7 @@
 - 2026-11-17：完成 nuke 5H，形成 dust2 5H/5B + nuke 5H/5B 平衡 10H/10B；F2 RF 0.85/AUC 0.90，但 nuke 仅 0.68，F2 residualized 0.55；仍不可作为行为结论。
 - 2026-11-17：不变特征与目标面积/可见性匹配复检完成（`P0C_INVARIANT_FEATURES.md`）：不变特征 AUC 0.75、残差 0.57；匹配子集 AUC 0.75–0.76、acc 0.60；F2 路线暂停。
 - 2026-11-17：论文方向定案（`PAPER_DIRECTION.md`）：推荐 benchmark/measurement/negative-result；不推荐 H/B 分类器、dataset paper；先投 workshop/short paper。
+- 2026-11-17：短论文工作草稿 `SHORT_PAPER_DRAFT.md` 完成：协议、模型域漂移、F2/confound 负结果、限制与结论；引用/图表/venue 模板待补。
 
 ---
 

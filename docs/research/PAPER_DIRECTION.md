@@ -232,7 +232,16 @@ benchmark/negative-result 主线。
 
 ---
 
-## 9. 一句话
+## 9. 工作草稿
+
+短论文工作草稿：
+
+- [`SHORT_PAPER_DRAFT.md`](SHORT_PAPER_DRAFT.md)
+
+当前草稿已包含：协议、模型审计、F2 结果、confound 分析、限制和负结果。
+引用、图表和 venue 模板仍待补。
+
+## 10. 一句话
 
 **最合适的论文方向是“可复现基准 + 混杂因素 + 负结果”的测量型论文，
 而不是继续抢救一个被 confound 主导的 H/B 分类器。**
