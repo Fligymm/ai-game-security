@@ -380,6 +380,7 @@
 | M4-17 | F2 confounder 分析 | Invalidated by map confound | `P0C_CONFOUNDER_ANALYSIS.md`；可见性/目标大小 + 地图混入 | 旧地图 5H/5B 复检 | 2026-11-16 |
 | M4-18 | 地图 confound 审计/标签修正 | Done | `docs/research/P0C_MAP_CONFOUND.md`；dust2 5H/5B、nuke 5H/5B、aim_botz 6H/0B；11H/10B 作废 | 平衡 10H/10B F2 | 2026-11-17 |
 | M4-19 | dust2+nuke 平衡 10H/10B | Negative/conditional | `docs/research/P0C_F2_BALANCED_MAPS.md`；F2 Logistic 0.80/AUC 0.82，RF 0.85/AUC 0.90；nuke 仅 0.68；F2 residualized 0.55 | 停训；做不变特征/可见性匹配 | 2026-11-17 |
+| M4-20 | 不变特征/匹配分析 | Negative | `docs/research/P0C_INVARIANT_FEATURES.md`；不变特征 AUC 0.75，残差 0.57；匹配子集 AUC 0.75–0.76、acc 0.60 | 决定论文定位或重设计采集 | 2026-11-17 |
 
 ### 9.2 每周节奏
 
@@ -466,6 +467,7 @@
 - 2026-11-16：发现 22:33–22:45 的 6 个 H 属于不同地图，B 全为旧地图；11H/10B F2 结果作废。旧地图 5H/5B F2 AUC 0.88/residual 0.64。
 - 2026-11-17：地图标签修正：old 5H/5B = dust2，new 5B = nuke，6 个 new H = aim_botz；`session.json` 与 `manifest.json` 同步，manifest SHA 重算。
 - 2026-11-17：完成 nuke 5H，形成 dust2 5H/5B + nuke 5H/5B 平衡 10H/10B；F2 RF 0.85/AUC 0.90，但 nuke 仅 0.68，F2 residualized 0.55；仍不可作为行为结论。
+- 2026-11-17：不变特征与目标面积/可见性匹配复检完成（`P0C_INVARIANT_FEATURES.md`）：不变特征 AUC 0.75、残差 0.57；匹配子集 AUC 0.75–0.76、acc 0.60；F2 路线暂停。
 
 ---
 

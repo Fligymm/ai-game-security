@@ -32,7 +32,11 @@ FEATURE_NAMES = [
     "offset_median_norm",
     "offset_cv",
     "offset_slope",
+    "offset_slope_norm_median",
     "settling_time_mean_s",
+    "settling_fraction_mean",
+    "offset_drop_ratio_mean",
+    "offset_iqr_ratio_mean",
     "jitter_ratio",
     "sign_flip_rate",
     "correction_magnitude_mean_norm",
@@ -159,6 +163,10 @@ def extract_session(session_dir: Path) -> tuple[dict[str, float], list[dict[str,
     acq_ratios: list[float] = []
     pre_select_ratios: list[float] = []
     settling_times: list[float] = []
+    settling_fractions: list[float] = []
+    drop_ratios: list[float] = []
+    slope_norms: list[float] = []
+    iqr_ratios: list[float] = []
     jitter_values: list[float] = []
     overshoot_flags: list[float] = []
 
@@ -234,8 +242,20 @@ def extract_session(session_dir: Path) -> tuple[dict[str, float], list[dict[str,
                     settle = sel_times[i] - run["start_s"]
                     break
         settling_times.append(max(0.0, settle))
+        settling_fractions.append(
+            min(1.0, max(0.0, settle) / run["duration_s"]) if run["duration_s"] > 1e-9 else 0.0
+        )
         if len(run_offsets) >= 2:
             jitter_values.append(float(np.mean(np.abs(np.diff(run_offsets)))) / max(med, 1e-9))
+            slope = _safe_slope(sel_times, run_offsets)
+            slope_norms.append(slope / max(med, 1e-9))
+            iqr_ratios.append(
+                float(np.percentile(run_offsets, 75) - np.percentile(run_offsets, 25)) / max(med, 1e-9)
+            )
+        if len(run_offsets) >= 2:
+            head = _median(run_offsets[: min(5, len(run_offsets))])
+            tail = _median(run_offsets[-min(5, len(run_offsets)):])
+            drop_ratios.append((head - tail) / max(head, 1e-9))
         # F3: overshoot proxy: offset rises after a lower value inside the run.
         overshoot = 0.0
         if len(run_offsets) >= 3:
@@ -310,7 +330,11 @@ def extract_session(session_dir: Path) -> tuple[dict[str, float], list[dict[str,
             if selected_offset_values else 0.0
         ),
         "offset_slope": _safe_slope(selected_times, selected_offset_values),
+        "offset_slope_norm_median": _median(slope_norms),
         "settling_time_mean_s": float(np.mean(settling_times)) if settling_times else 0.0,
+        "settling_fraction_mean": float(np.mean(settling_fractions)) if settling_fractions else 0.0,
+        "offset_drop_ratio_mean": float(np.mean(drop_ratios)) if drop_ratios else 0.0,
+        "offset_iqr_ratio_mean": float(np.mean(iqr_ratios)) if iqr_ratios else 0.0,
         "jitter_ratio": float(np.mean(jitter_values)) if jitter_values else 0.0,
         "sign_flip_rate": sign_flips / max(len(selected_offset_values), 1),
         "correction_magnitude_mean_norm": (
