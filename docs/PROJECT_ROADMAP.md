@@ -388,7 +388,8 @@
 | M4-25 | POV 检测域适应转向 | Active | `docs/research/POV_DETECTION_PLAN.md`；400 帧预标注、12/4/4 session split；等待人工标注复核 | 复核 test 80 帧 + train/val 抽查 | 2026-11-17 |
 | M4-26 | POV 预标注复核流程 | Done | test 80 帧人工复核；149 boxes（head 74/body 75）；Label Studio JSON→YOLO 校验通过 | POV 训练 | 2026-11-17 |
 | M4-27 | POV 检测首轮训练/评估 | Positive body; head no gain | `docs/research/POV_DETECTION_RESULTS.md`；POV mAP50 0.539 vs old 0.485；body 0.825 vs 0.713；head 0.254 vs 0.257；hybrid old-head+POV-body head R .432/body R .840 | 补 train/val head 标签 | 2026-11-17 |
-| M4-28 | 64 帧 head 补标注 | Ready for owner | `docs/research/POV_HEAD_REVIEW_PROCEDURE.md`；review_trainval_head 64 帧、Label Studio head-only、merge_pov_head_review | 完成 64 帧后重训 POV v2 | 2026-11-17 |
+| M4-28 | 64 帧 head 补标注 | Done | 64 帧 Label Studio head 复核完成；train/val 合并后 head 76/39 | 重训 POV v2 | 2026-11-17 |
+| M4-29 | POV v2 重训/评估 | Head still negative | v2 full-frame mAP50 0.557，head 0.282，body 0.832；tiled head 0.270，低于 v1 0.284；最佳仍 old head + POV v1 body | 停止 head 追补；转 body/路由应用论文或换数据 | 2026-11-17 |
 
 ### 9.2 每周节奏
 
@@ -485,6 +486,7 @@
 - 2026-11-17：复核流程改为 Label Studio 主路径：`configs/labelstudio_pov.xml` + `tools/labelstudio_to_yolo.py`；JSON 导出后转 YOLO 并校验。
 - 2026-11-17：test 80 帧人工复核完成（149 boxes）；POV YOLOv8n 训练/评估完成：body mAP50 0.825（old 0.713），head 0.254（old 0.257）；hybrid old-head + POV-body 有效；head 仍需更多标签。
 - 2026-11-17：准备 64 帧 train/val head 复核集（16 sessions ×4）；新增 head-only Label Studio 流程和 head/body 合并工具，等待复核后重训 v2。
+- 2026-11-17：64 帧 head 复核完成并重训 POV v2；v2 full-frame mAP50 0.557、head 0.282、body 0.832；tiled head 0.270 仍低于 v1 0.284；head 补标注未恢复 head。最佳组合仍 old head + POV v1 body。
 
 ---
 

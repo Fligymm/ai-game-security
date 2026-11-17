@@ -113,7 +113,48 @@ POV head 没有提升，最可能原因是训练集中 head 监督不足/不准�
 
 ---
 
-## 5. 论文可行性判断
+## 5. Head 复核后 v2
+
+64 帧 train/val head 复核后重训：
+
+```text
+pov_ft_v2-2
+head train boxes: 76
+head val boxes:   39
+```
+
+Full-frame 1280 test：
+
+| 模型 | mAP50 | head mAP50 | head R | body mAP50 | body R |
+|---|---:|---:|---:|---:|---:|
+| old | 0.485 | 0.257 | 0.311 | 0.713 | 0.720 |
+| POV v1 | 0.539 | 0.254 | 0.324 | 0.825 | 0.827 |
+| POV v2 | **0.557** | **0.282** | 0.297 | **0.832** | **0.840** |
+
+Tiled 3×3 / 720：
+
+| 模型 | head P / R | body P / R |
+|---|---|---|
+| old | 0.696 / **0.432** | 0.952 / 0.787 |
+| POV v1 | 0.778 / **0.284** | **0.940 / 0.840** |
+| POV v2 | 0.952 / 0.270 | 0.938 / 0.813 |
+
+结论：
+
+- v2 full-frame mAP50 略升（0.539 → 0.557）；
+- head mAP50 略升（0.254 → 0.282），但 head recall 下降；
+- tiled head 反而下降（0.284 → 0.270）；
+- v1 的 tiled body 更好；
+- **64 帧 head 补标注没有带来可用 head 恢复。**
+
+当前最佳仍是：
+
+```text
+old head + POV v1 body
+head R 0.432 / body R 0.840
+```
+
+## 6. 论文可行性判断
 
 ### 可以写的应用论文
 
@@ -141,7 +182,7 @@ POV head 没有提升，最可能原因是训练集中 head 监督不足/不准�
 
 ---
 
-## 6. 输出
+## 7. 输出
 
 ```text
 runs/detect/pov_ft_v1-2/
@@ -158,7 +199,7 @@ runs/eval/pov_tiled_eval_hybrid.json
 
 ---
 
-## 7. 当前决定
+## 8. 当前决定
 
 ```text
 不覆盖 old deployment default

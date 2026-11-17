@@ -2,7 +2,7 @@
 
 日期：2026-11-17  
 方向：从 negative/benchmark 论文转向**可产生正结果的检测论文**  
-状态：**test 80 帧已人工复核；POV 模型已训练；body 正结果，head 未恢复**
+状态：**test 80 帧 + 64 帧 head 复核已完成；POV v1/v2 已训练；body 正结果，head 仍未恢复**
 
 Head 补标注流程：
 
@@ -14,10 +14,11 @@ Head 补标注流程：
 结果：
 
 - [`POV_DETECTION_RESULTS.md`](POV_DETECTION_RESULTS.md)
-- POV full-frame mAP50 0.539（old 0.485）
-- body mAP50 0.825（old 0.713）
-- head mAP50 0.254（old 0.257）
-- tiled hybrid（old head + POV body）：head R 0.432，body R 0.840
+- POV v1 full-frame mAP50 0.539；v2 0.557
+- body v1 0.825 / v2 0.832（old 0.713）
+- head v1 0.254 / v2 0.282（old 0.257）
+- tiled head v2 0.270，低于 v1 0.284
+- 最佳组合仍是 old head + POV v1 body：head R 0.432，body R 0.840
 
 ---
 
