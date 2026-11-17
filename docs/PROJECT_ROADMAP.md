@@ -386,7 +386,8 @@
 | M4-23 | 论文推进清单 | Active | `docs/research/PAPER_TASKS.md`；可推进项、需所有者提供项、审核项 | 数字冻结/图表/压缩 | 2026-11-17 |
 | M4-24 | 期刊 shortlist | Drafted | `docs/research/JOURNAL_SHORTLIST.md`；首选 DTRAP（需扩到 10–15 页），次选 Entertainment Computing，现实备选 IEEE Access | 转向检测正结果方向 | 2026-11-17 |
 | M4-25 | POV 检测域适应转向 | Active | `docs/research/POV_DETECTION_PLAN.md`；400 帧预标注、12/4/4 session split；等待人工标注复核 | 复核 test 80 帧 + train/val 抽查 | 2026-11-17 |
-| M4-26 | POV 预标注复核流程 | Ready for owner | `docs/research/POV_LABEL_REVIEW_PROCEDURE.md`；Label Studio 为主，JSON→YOLO 转换 + validate_pov_labels；review_test 80 帧 | 完成 test 复核后训练 | 2026-11-17 |
+| M4-26 | POV 预标注复核流程 | Done | test 80 帧人工复核；149 boxes（head 74/body 75）；Label Studio JSON→YOLO 校验通过 | POV 训练 | 2026-11-17 |
+| M4-27 | POV 检测首轮训练/评估 | Positive body; head no gain | `docs/research/POV_DETECTION_RESULTS.md`；POV mAP50 0.539 vs old 0.485；body 0.825 vs 0.713；head 0.254 vs 0.257；hybrid old-head+POV-body head R .432/body R .840 | 决定写 body/路由论文或补 train/val head 标签 | 2026-11-17 |
 
 ### 9.2 每周节奏
 
@@ -481,6 +482,7 @@
 - 2026-11-17：论文主线转向 POV 检测域适应（`POV_DETECTION_PLAN.md`）：生成 400 帧预标注数据（12/4/4 session split）。
 - 2026-11-17：POV 预标注复核流程 `POV_LABEL_REVIEW_PROCEDURE.md` 完成；生成 review_test 80 帧、checklist 和格式校验工具。
 - 2026-11-17：复核流程改为 Label Studio 主路径：`configs/labelstudio_pov.xml` + `tools/labelstudio_to_yolo.py`；JSON 导出后转 YOLO 并校验。
+- 2026-11-17：test 80 帧人工复核完成（149 boxes）；POV YOLOv8n 训练/评估完成：body mAP50 0.825（old 0.713），head 0.254（old 0.257）；hybrid old-head + POV-body 有效；head 仍需更多标签。
 
 ---
 

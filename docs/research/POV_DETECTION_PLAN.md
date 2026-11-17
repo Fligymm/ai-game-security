@@ -2,7 +2,15 @@
 
 日期：2026-11-17  
 方向：从 negative/benchmark 论文转向**可产生正结果的检测论文**  
-状态：**预标注数据集已生成；等待人工标注复核；尚未训练**
+状态：**test 80 帧已人工复核；POV 模型已训练；body 正结果，head 未恢复**
+
+结果：
+
+- [`POV_DETECTION_RESULTS.md`](POV_DETECTION_RESULTS.md)
+- POV full-frame mAP50 0.539（old 0.485）
+- body mAP50 0.825（old 0.713）
+- head mAP50 0.254（old 0.257）
+- tiled hybrid（old head + POV body）：head R 0.432，body R 0.840
 
 ---
 
