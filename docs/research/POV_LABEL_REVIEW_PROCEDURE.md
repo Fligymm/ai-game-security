@@ -82,7 +82,126 @@ datasets/pov_detection_v1/review_contact_sheet.jpg
 
 ## 3. 工具
 
-### 推荐：LabelImg
+### 推荐：Label Studio
+
+你已经用过 Label Studio，建议直接用这个流程。
+
+#### 3.1 启动
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install label-studio
+.\.venv\Scripts\label-studio.exe start
+```
+
+打开：
+
+```text
+http://localhost:8080
+```
+
+#### 3.2 创建项目
+
+1. Create Project；
+2. 名称：`POV Detection QC`；
+3. Labeling Setup 选择 **Object Detection with RectangleLabels**；
+4. 或直接粘贴：
+
+```text
+configs/labelstudio_pov.xml
+```
+
+配置内容：
+
+```xml
+<View>
+  <Image name="image" value="$image" zoom="true" zoomControl="true"/>
+  <RectangleLabels name="label" toName="image">
+    <Label value="enemy_head" background="#00FF00"/>
+    <Label value="enemy_body" background="#FFA500"/>
+  </RectangleLabels>
+</View>
+```
+
+5. Data Import 上传：
+
+```text
+datasets/pov_detection_v1/review_test/images/
+```
+
+80 张 test 图。
+
+6. 不需要导入预标注；按下面的规则手动画框即可。
+   预标注只作为参考，不要直接提交未检查的预标注。
+
+#### 3.3 标注
+
+每张图：
+
+- 有 head → 画 `enemy_head`；
+- 有身体 → 画 `enemy_body`；
+- 空帧 → 不画；
+- 删除误框/重复框；
+- 保存并提交。
+
+Label Studio 支持键盘快捷键，按你之前的使用习惯即可。
+
+#### 3.4 导出
+
+标注完成后：
+
+```text
+Export -> JSON
+```
+
+保存为：
+
+```text
+datasets/pov_detection_v1/labelstudio_export.json
+```
+
+> 不要导出 YOLO；JSON 更容易和图片文件名精确对应。
+
+#### 3.5 转成 YOLO 并校验
+
+```powershell
+.\.venv\Scripts\python.exe tools\labelstudio_to_yolo.py `
+  --export datasets\pov_detection_v1\labelstudio_export.json `
+  --output-dir datasets\pov_detection_v1\review_test\labels_ls `
+  --summary datasets\pov_detection_v1\review_test\labelstudio_conversion.json
+```
+
+然后校验：
+
+```powershell
+.\.venv\Scripts\python.exe tools\validate_pov_labels.py `
+  --images datasets\pov_detection_v1\images\test `
+  --labels datasets\pov_detection_v1\review_test\labels_ls `
+  --output datasets\pov_detection_v1\review_test\labels_ls_qc.json
+```
+
+必须 `ok: true`，并且 80 个标签文件。
+
+#### 3.6 替换 test 标签
+
+先备份预标注：
+
+```powershell
+Copy-Item `
+  datasets\pov_detection_v1\labels\test `
+  datasets\pov_detection_v1\labels\test_prelabels_backup `
+  -Recurse
+```
+
+再复制 Label Studio 结果：
+
+```powershell
+Copy-Item `
+  datasets\pov_detection_v1\review_test\labels_ls\*.txt `
+  datasets\pov_detection_v1\labels\test\ `
+  -Force
+```
+
+### 备选：LabelImg
 
 当前环境未安装，可在项目虚拟环境安装：
 

@@ -106,6 +106,8 @@ datasets/pov_detection_v1/review_contact_sheet.jpg
 完整复核流程见：
 
 - [`POV_LABEL_REVIEW_PROCEDURE.md`](POV_LABEL_REVIEW_PROCEDURE.md)
+- Label Studio 配置：`configs/labelstudio_pov.xml`
+- JSON → YOLO 转换：`tools/labelstudio_to_yolo.py`
 
 ---
 

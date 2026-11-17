@@ -1,177 +1,122 @@
-"""Convert a Label Studio JSON export to YOLO labels for the pilot sample."""
+"""Convert a Label Studio JSON export into YOLO labels for the POV test set."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
-from typing import Any
-from urllib.parse import unquote
 
 CLASS_IDS = {"enemy_head": 0, "enemy_body": 1}
 
 
-def _load_tasks(path: Path) -> list[dict[str, Any]]:
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    if isinstance(payload, list):
-        return payload
-    if isinstance(payload, dict) and isinstance(payload.get("tasks"), list):
-        return payload["tasks"]
-    raise ValueError("export must be a Label Studio JSON list or {'tasks': [...]}")
+def _load_tasks(export_path: Path) -> list[dict]:
+    payload = json.loads(export_path.read_text(encoding="utf-8"))
+    tasks = payload if isinstance(payload, list) else payload.get("tasks", [])
+    if not isinstance(tasks, list):
+        raise ValueError("Label Studio export must be a task list")
+    return tasks
 
 
-def _task_filename(task: dict[str, Any]) -> str | None:
-    for key in ("file_upload", "image"):
-        value = task.get(key)
-        if value is None:
-            value = (task.get("data") or {}).get(key)
-        if value:
-            return Path(unquote(str(value))).name
+def _task_filename(task: dict) -> str | None:
+    data = task.get("data") or {}
+    for value in (data.get("image"), data.get("file_upload"), data.get("image_url"), task.get("file_upload")):
+        if isinstance(value, str):
+            return Path(value.split("?")[0]).name
     return None
 
 
-def _chosen_annotation(task: dict[str, Any]) -> dict[str, Any] | None:
-    annotations = task.get("annotations") or []
-    if not isinstance(annotations, list) or not annotations:
+def _chosen_annotation(task: dict) -> dict | None:
+    annotations = [a for a in task.get("annotations") or [] if not a.get("was_cancelled")]
+    if not annotations:
         return None
-    for annotation in reversed(annotations):
-        if not annotation.get("was_cancelled"):
-            return annotation
-    return None
+    return max(annotations, key=lambda a: (str(a.get("updated_at") or ""), int(a.get("id") or 0)))
 
 
-def _yolo_line(result: dict[str, Any]) -> str | None:
-    if result.get("type") != "rectanglelabels":
-        return None
-    value = result.get("value") or {}
-    labels = value.get("rectanglelabels") or []
-    if not labels:
-        return None
-    name = str(labels[0])
-    if name not in CLASS_IDS:
-        raise ValueError(f"unknown label {name!r}; expected {sorted(CLASS_IDS)}")
-    try:
-        x = float(value["x"]) / 100.0
-        y = float(value["y"]) / 100.0
-        width = float(value["width"]) / 100.0
-        height = float(value["height"]) / 100.0
-    except (KeyError, TypeError, ValueError) as exc:
-        raise ValueError(f"bad rectangle value: {value!r}") from exc
-    if width <= 0 or height <= 0:
-        raise ValueError(f"non-positive rectangle size: {value!r}")
-    x1 = max(0.0, min(1.0, x))
-    y1 = max(0.0, min(1.0, y))
-    x2 = max(x1, min(1.0, x + width))
-    y2 = max(y1, min(1.0, y + height))
-    return (
-        f"{CLASS_IDS[name]} "
-        f"{(x1 + x2) / 2:.6f} {(y1 + y2) / 2:.6f} "
-        f"{x2 - x1:.6f} {y2 - y1:.6f}"
-    )
+def _filename(task: dict) -> str | None:
+    return _task_filename(task)
 
 
-def convert(
-    export_path: Path,
-    images_dir: Path,
-    labels_dir: Path,
-    *,
-    allow_missing: bool = False,
-) -> dict[str, Any]:
+def _resolve_image(name: str, images: set[str]) -> tuple[str | None, list[str]]:
+    if name in images:
+        return name, [name]
+    candidates = [image for image in images if image.endswith(name) or name.endswith(image)]
+    if len(candidates) == 1:
+        return candidates[0], candidates
+    return None, candidates
+
+
+def convert(export_path: Path, images_dir: Path, labels_dir: Path) -> dict:
     tasks = _load_tasks(export_path)
-    images = {path.name: path for path in images_dir.glob("*.jpg")}
     labels_dir.mkdir(parents=True, exist_ok=True)
-
-    errors: list[str] = []
-    warnings: list[str] = []
-    seen: set[str] = set()
-    boxes = 0
-    empty = 0
-
+    images = {path.name for path in images_dir.glob("*") if path.is_file()}
+    written = []
+    errors = []
+    boxes_total = 0
+    seen_images: set[str] = set()
     for task in tasks:
-        filename = _task_filename(task)
-        if not filename:
-            errors.append("task without file_upload/image")
+        upload_name = _filename(task)
+        if not upload_name:
+            errors.append("task missing image filename")
             continue
-        # Label Studio uploads may prepend an 8-hex-character prefix to the
-        # stored filename (e.g. "3955725a-static_target...jpg").  Accept an
-        # unambiguous match where either name is the suffix of the other.
-        resolved = filename if filename in images else None
-        if resolved is None:
-            candidates = [
-                name
-                for name in images
-                if name.endswith(filename) or filename.endswith(name)
-            ]
-            if len(candidates) == 1:
-                resolved = candidates[0]
-        if resolved is None:
-            errors.append(f"image not found for task: {filename}")
+        name, candidates = _resolve_image(upload_name, images)
+        if name is None:
+            errors.append(f"cannot resolve image for task: {upload_name!r} candidates={candidates}")
             continue
-        if resolved in seen:
-            errors.append(f"duplicate task for image: {resolved}")
-            continue
-        seen.add(resolved)
-
+        seen_images.add(name)
         annotation = _chosen_annotation(task)
-        if annotation is None:
-            errors.append(f"no completed annotation: {resolved}")
-            continue
-
-        lines: list[str] = []
-        for result in annotation.get("result") or []:
-            try:
-                line = _yolo_line(result)
-            except ValueError as exc:
-                errors.append(f"{resolved}: {exc}")
+        results = (annotation.get("result") or []) if annotation else []
+        labels = []
+        for result in results:
+            if result.get("type") != "rectanglelabels":
                 continue
-            if line:
-                lines.append(line)
-        label_path = labels_dir / f"{Path(resolved).stem}.txt"
-        label_path.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
-        boxes += len(lines)
-        empty += int(not lines)
-
-    missing = sorted(set(images) - seen)
-    if missing:
-        message = (
-            f"{len(missing)} images have no Label Studio task; "
-            "if they are empty, Submit an empty annotation instead of Skip"
-        )
-        if allow_missing:
-            warnings.append(message)
-        else:
-            errors.append(message)
-
+            value = result.get("value") or {}
+            names = value.get("rectanglelabels") or []
+            if not names or names[0] not in CLASS_IDS:
+                errors.append(f"{name}: unknown label {names}")
+                continue
+            x = float(value.get("x", 0.0))
+            y = float(value.get("y", 0.0))
+            w = float(value.get("width", 0.0))
+            h = float(value.get("height", 0.0))
+            if not (0.0 <= x <= 100.0 and 0.0 <= y <= 100.0 and 0.0 < w <= 100.0 and 0.0 < h <= 100.0):
+                errors.append(f"{name}: invalid normalized rectangle")
+                continue
+            cx = (x + w / 2.0) / 100.0
+            cy = (y + h / 2.0) / 100.0
+            bw = w / 100.0
+            bh = h / 100.0
+            labels.append(f"{CLASS_IDS[names[0]]} {cx:.6f} {cy:.6f} {bw:.6f} {bh:.6f}")
+            boxes_total += 1
+        path = labels_dir / f"{Path(name).stem}.txt"
+        path.write_text("\n".join(labels) + ("\n" if labels else ""), encoding="utf-8")
+        written.append({"image": name, "label": path.name, "boxes": len(labels)})
+    missing = sorted(images - seen_images)
+    for name in missing:
+        errors.append(f"no Label Studio task for image: {name}")
     return {
         "ok": not errors,
-        "export": str(export_path),
-        "images": len(images),
-        "labeled_tasks": len(seen),
+        "written": written,
+        "boxes": boxes_total,
         "missing": missing,
-        "boxes": boxes,
-        "empty_labels": empty,
         "errors": errors,
-        "warnings": warnings,
     }
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Convert Label Studio JSON to YOLO labels")
-    parser.add_argument("--export", type=Path, required=True, help="Label Studio JSON export")
-    parser.add_argument("--images-dir", type=Path, required=True)
-    parser.add_argument("--labels-dir", type=Path, required=True)
-    parser.add_argument("--allow-missing", action="store_true", help="Do not fail when images are not in the export")
-    args = parser.parse_args()
-
-    report = convert(
-        args.export,
-        args.images_dir,
-        args.labels_dir,
-        allow_missing=args.allow_missing,
-    )
-    print(json.dumps(report, ensure_ascii=False, indent=2))
-    raise SystemExit(0 if report["ok"] else 1)
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Convert Label Studio JSON to YOLO")
+    parser.add_argument("--export", type=Path, required=True)
+    parser.add_argument("--images", type=Path, default=Path("datasets/pov_detection_v1/images/test"))
+    parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--summary", type=Path, default=None)
+    args = parser.parse_args(argv)
+    result = convert(args.export, args.images, args.output_dir)
+    text = json.dumps({**result, "count": len(result["written"])}, indent=2, ensure_ascii=False)
+    print(text)
+    if args.summary:
+        args.summary.write_text(text, encoding="utf-8")
+    return 0 if result["ok"] else 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
