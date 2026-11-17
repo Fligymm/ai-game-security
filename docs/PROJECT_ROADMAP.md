@@ -386,6 +386,7 @@
 | M4-23 | 论文推进清单 | Active | `docs/research/PAPER_TASKS.md`；可推进项、需所有者提供项、审核项 | 数字冻结/图表/压缩 | 2026-11-17 |
 | M4-24 | 期刊 shortlist | Drafted | `docs/research/JOURNAL_SHORTLIST.md`；首选 DTRAP（需扩到 10–15 页），次选 Entertainment Computing，现实备选 IEEE Access | 转向检测正结果方向 | 2026-11-17 |
 | M4-25 | POV 检测域适应转向 | Active | `docs/research/POV_DETECTION_PLAN.md`；400 帧预标注、12/4/4 session split；等待人工标注复核 | 复核 test 80 帧 + train/val 抽查 | 2026-11-17 |
+| M4-26 | POV 预标注复核流程 | Ready for owner | `docs/research/POV_LABEL_REVIEW_PROCEDURE.md`；review_test 80 帧、checklist、LabelImg/CVAT、validate_pov_labels | 完成 test 复核后训练 | 2026-11-17 |
 
 ### 9.2 每周节奏
 
@@ -477,7 +478,8 @@
 - 2026-11-17：短论文工作草稿 `SHORT_PAPER_DRAFT.md` 完成：协议、模型域漂移、F2/confound 负结果、限制与结论；引用/图表/venue 模板待补。
 - 2026-11-17：论文推进清单 `PAPER_TASKS.md` 完成，明确我可直接推进项、需所有者提供/审核项；开始数字冻结与图表。
 - 2026-11-17：期刊 shortlist `JOURNAL_SHORTLIST.md` 完成：DTRAP 首选（需扩展），Entertainment Computing 次选，IEEE Access 现实备选。
-- 2026-11-17：论文主线转向 POV 检测域适应（`POV_DETECTION_PLAN.md`）：生成 400 帧预标注数据（12/4/4 session split）；等待人工复核 test 80 帧后再训练。
+- 2026-11-17：论文主线转向 POV 检测域适应（`POV_DETECTION_PLAN.md`）：生成 400 帧预标注数据（12/4/4 session split）。
+- 2026-11-17：POV 预标注复核流程 `POV_LABEL_REVIEW_PROCEDURE.md` 完成；生成 review_test 80 帧、checklist 和格式校验工具；等待 test 复核。
 
 ---
 
