@@ -37,7 +37,7 @@ B = 10 个独立 session
 所有 session：
 
 ```text
-60s, 1920x1080, dust2 (old H/B) + aim_botz (6 new H), static_target,
+60s, 1920x1080, dust2 (old 5H/5B) + nuke (5B) + aim_botz (6H), static_target,
 ak47, sensitivity=0.8, fov=90,
 first_person, old-model tiled C, timebase PASS
 ```

@@ -1,7 +1,7 @@
 # P0-C 地图 confound 与数据隔离
 
 日期：2026-11-16  
-状态：**地图标签已更正：旧 15 个 session = dust2；6 个新 H = aim_botz；11H/10B F2 结果不能使用**
+状态：**地图标签已更正：dust2 5H/5B；nuke 0H/5B；aim_botz 6H/0B；11H/10B F2 结果不能使用**
 
 ---
 
@@ -10,9 +10,13 @@
 项目所有者确认并更正：
 
 ```text
-旧 5 个 H + 所有 B（15 个有效 session）：dust2
+旧 5 个 H + 旧 5 个 B：dust2
+新 5 个 B（224959–225515）：nuke
 22:33–22:45 的 6 个 H session：aim_botz
 ```
+
+当前 21 个有效 session 分布在三个地图，**没有任何一个地图同时有 10H/10B**。
+唯一有 H/B 配对的是 dust2 的 5H/5B。
 
 6 个 H session：
 
@@ -28,7 +32,8 @@ p0b_human_20261116_224520
 更正前这些 session 的 `session.json` 都写着 `map = aim_botz`。
 现在已按实际地图修正：
 
-- 旧 5H / 10B：`map = dust2`
+- 旧 5H / 旧 5B：`map = dust2`
+- 新 5B（224959–225515）：`map = nuke`
 - 6 个新 H：`map = aim_botz`
 
 `session.json` 与 `manifest.json` 的 `session.extra.map` 已同步更新，
@@ -49,23 +54,45 @@ manifest 中 `session.json` 的 SHA256 也已重算。
 其中 H 组由：
 
 ```text
-5 个旧地图 H
-6 个新地图 H
+5 个 dust2 H
+6 个 aim_botz H
 ```
 
-混合，而 B 组全部是旧地图。分类器很容易学到**地图/场景**，而不是行为。
+混合；B 组由：
 
-必须隔离 6 个新地图 H，不能把它们与旧地图 B 混在一起做 H/B 分类。
+```text
+5 个 dust2 B
+5 个 nuke B
+```
+
+混合。分类器很容易学到**地图**，而不是行为。
+
+必须按地图隔离：目前只有 dust2 5H/5B 可以配对；nuke 和 aim_botz
+都不能单独做 H/B 对比。
 
 ---
 
 ## 3. 旧地图（dust2）可用数据
 
-旧地图：
+旧地图（dust2）：
 
 ```text
 H = 5
-B = 10（可用 5 个配对 subset）
+B = 5
+```
+
+nuke 目前：
+
+```text
+H = 0
+B = 5
+```
+
+aim_botz 目前：
+
+```text
+H = 6
+B = 0
 ```
 
 旧地图 5H/5B 固定 F2 结果：
@@ -98,16 +125,17 @@ F2 residualized 后 AUC 0.640，仍不足以支持行为结论。
 ## 4. 结论
 
 1. **11H/10B F2 结果作废**，不能写论文；
-2. 6 个新地图 H 只能保存为 **cross-map 数据**，不能和旧地图 B 混用；
-3. 旧地图 5H/5B 有一些 F2 信号，但样本太小且仍有目标面积/置信度差异；
-4. 下一步需要**旧地图的 5 个新 H session**，而不是继续补 B；
-5. 所有新 session 必须显式填写正确地图，并人工确认。
+2. 6 个 aim_botz H、5 个 nuke B 只能保存为 **cross-map 数据**，不能直接混用；
+3. dust2 5H/5B 有一些 F2 信号，但样本太小且仍有目标面积/置信度差异；
+4. 下一步需要 **5 个 nuke H**，与已有 nuke B 配对；不需要补 B；
+5. 这样可形成 dust2 5H/5B + nuke 5H/5B = 10H/10B，且每个地图内类别平衡；
+6. 所有新 session 必须显式填写正确地图，并人工确认。
 
 ---
 
 ## 5. 需要的新数据
 
-请求新增 **5 个 dust2 H session**：
+请求新增 **5 个 nuke H session**（与已有 nuke B 配对）：
 
 | Session | 类型 | operator_id |
 |---|---|---|
@@ -120,7 +148,7 @@ F2 residualized 后 AUC 0.640，仍不足以支持行为结论。
 条件：
 
 ```text
-地图：dust2（与旧 5H / 所有 B 相同）
+地图：nuke（与 224959–225515 的 5 个 B 相同）
 场景：static_target
 60s, 1920x1080, 30 FPS
 ak47, sensitivity=0.8, fov=90
@@ -128,7 +156,8 @@ first_person
 old 模型默认
 ```
 
-不需要新增 B；已有 10 个 B，足够选 5/10 旧地图子集。
+不需要新增 B；nuke 已有 5 个 B，dust2 已有 5 个 B，各补 5 个 H 后即可形成
+两个地图内部 5H/5B 的平衡设计。
 
 采集时显式传地图名，并人工确认实际地图：
 
@@ -137,21 +166,21 @@ old 模型默认
   -AgentType human `
   -CaptureSource player_pov `
   -OperatorId anon_h11 `
-  -MapName dust2
+  -MapName nuke
 ```
 
 依次改到 `anon_h12` … `anon_h15`。
 
-> 旧地图已确认为 `dust2`；新采集的 5 个 H 必须使用 `-MapName dust2`，
-> 不能沿用脚本默认值或 `aim_botz`。
+> 新采集的 5 个 H 必须使用 `-MapName nuke`，与已有 nuke B 配对；
+> 不能沿用脚本默认值或 `dust2`。
 
 ---
 
 ## 6. 下一步
 
 1. 隔离 6 个新地图 H：不进入 H/B baseline；
-2. 等 5 个旧地图 H 采集完成；
-3. 固定 F2，用 10H/10B 旧地图数据重跑；
+2. 等 5 个 nuke H 采集完成；
+3. 固定 F2，用 dust2 5H/5B + nuke 5H/5B 重跑；
 4. 再做 confounder 分析；
 5. 不训练正式分类器。
 
@@ -163,6 +192,6 @@ old 模型默认
 11H/10B 结果作废
 新地图 H 只用于后续 cross-map 实验
 B 不补
-请求 5 个旧地图 H
+请求 5 个 nuke H
 不训练分类器
 ```

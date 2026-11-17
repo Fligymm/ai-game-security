@@ -2,8 +2,9 @@
 
 日期：2026-11-16  
 状态：**F2 signal 主要可由可见性/目标大小解释；不能作为行为结论**
-> 后续补充：21-session 数据同时混入 6 个新地图 H。地图 confound 使本文结论更强：
-> 当前数据不能用于 H/B 分类。见 [`P0C_MAP_CONFOUND.md`](P0C_MAP_CONFOUND.md)。
+> 后续补充：21-session 数据同时混入 6 个 aim_botz H 和 5 个 nuke B。
+> 地图 confound 使本文结论更强：当前数据不能用于 H/B 分类。
+> 见 [`P0C_MAP_CONFOUND.md`](P0C_MAP_CONFOUND.md)。
 
 ---
 
