@@ -4,6 +4,13 @@
 方向：从 negative/benchmark 论文转向**可产生正结果的检测论文**  
 状态：**test 80 帧已人工复核；POV 模型已训练；body 正结果，head 未恢复**
 
+Head 补标注流程：
+
+- [`POV_HEAD_REVIEW_PROCEDURE.md`](POV_HEAD_REVIEW_PROCEDURE.md)
+- 数据：`datasets/pov_detection_v1/review_trainval_head/`（64 帧）
+- 配置：`configs/labelstudio_pov_head.xml`
+- 工具：`labelstudio_to_yolo.py` + `merge_pov_head_review.py`
+
 结果：
 
 - [`POV_DETECTION_RESULTS.md`](POV_DETECTION_RESULTS.md)
