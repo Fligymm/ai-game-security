@@ -390,6 +390,7 @@
 | M4-27 | POV 检测首轮训练/评估 | Positive body; head no gain | `docs/research/POV_DETECTION_RESULTS.md`；POV mAP50 0.539 vs old 0.485；body 0.825 vs 0.713；head 0.254 vs 0.257；hybrid old-head+POV-body head R .432/body R .840 | 补 train/val head 标签 | 2026-11-17 |
 | M4-28 | 64 帧 head 补标注 | Done | 64 帧 Label Studio head 复核完成；train/val 合并后 head 76/39 | 重训 POV v2 | 2026-11-17 |
 | M4-29 | POV v2 重训/评估 | Head still negative | v2 full-frame mAP50 0.557，head 0.282，body 0.832；tiled head 0.270，低于 v1 0.284；最佳仍 old head + POV v1 body | 停止 head 追补；转 body/路由应用论文或换数据 | 2026-11-17 |
+| M4-30 | 国内期刊 shortlist | Decided | `docs/research/CHINESE_JOURNAL_SHORTLIST.md`；首选计算机应用研究，备选计算机工程与应用/计算机应用；中文 body/路由应用论文 | 补实验（速度/tiling/路由消融/cross-map） | 2026-11-17 |
 
 ### 9.2 每周节奏
 
@@ -487,6 +488,7 @@
 - 2026-11-17：test 80 帧人工复核完成（149 boxes）；POV YOLOv8n 训练/评估完成：body mAP50 0.825（old 0.713），head 0.254（old 0.257）；hybrid old-head + POV-body 有效；head 仍需更多标签。
 - 2026-11-17：准备 64 帧 train/val head 复核集（16 sessions ×4）；新增 head-only Label Studio 流程和 head/body 合并工具，等待复核后重训 v2。
 - 2026-11-17：64 帧 head 复核完成并重训 POV v2；v2 full-frame mAP50 0.557、head 0.282、body 0.832；tiled head 0.270 仍低于 v1 0.284；head 补标注未恢复 head。最佳组合仍 old head + POV v1 body。
+- 2026-11-17：论文目标改为国内中文期刊；首选《计算机应用研究》，备选《计算机工程与应用》《计算机应用》；主线改为 POV body 域适应 + 类别路由。
 
 ---
 
